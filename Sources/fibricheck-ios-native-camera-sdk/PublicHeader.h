@@ -1,7 +1,7 @@
 #ifndef PublicHeader_h
 #define PublicHeader_h
 
-#import "FibriChecker.h"
-#import "Measurement.h"
+#import "FibriChecker/FibriChecker.h"
+#import "Measuring/Measurement.h"
 
 #endif /* PublicHeader_h */
