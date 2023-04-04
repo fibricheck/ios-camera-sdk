@@ -24,7 +24,6 @@ let package = Package(
             path: "Sources/fibricheck-ios-native-camera-sdk/",
             publicHeadersPath: ".",
             cSettings: [
-                .headerSearchPath(".."),
                 .headerSearchPath("."),
                 .headerSearchPath("FibriChecker"),
                 .headerSearchPath("Helpers"),
