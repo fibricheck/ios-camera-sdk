@@ -20,9 +20,9 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "fibricheck-ios-native-camera-sdk",
-            dependencies: []),
-        .testTarget(
-            name: "fibricheck-ios-native-camera-sdkTests",
-            dependencies: ["fibricheck-ios-native-camera-sdk"]),
+            dependencies: [],
+            path: "Sources/fibricheck-ios-native-camera-sdk/",
+            publicHeadersPath: ""
+        )
     ]
 )
