@@ -1,0 +1,26 @@
+name: CI
+
+on: push
+
+jobs:
+  build-swift-package-manager:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    - run: |
+        cd examples/FibriCheckExample
+        xcodebuild -scheme FibriCheckExample -target FibriCheckExample -destination 'generic/platform=iOS' CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+  build-cocoapods:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    - run: |
+        cd examples/FibriCheckCocoaPodsExample
+        pod install
+        xcodebuild -scheme FibriCheckCocoaPodsExample -workspace FibriCheckCocoaPodsExample.xcworkspace -destination 'generic/platform=iOS' CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
