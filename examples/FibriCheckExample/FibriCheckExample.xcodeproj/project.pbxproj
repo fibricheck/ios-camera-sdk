@@ -12,19 +12,8 @@
 		F2245E9F2A0399CE00751BF4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2245E9E2A0399CE00751BF4 /* Assets.xcassets */; };
 		F2245EA22A0399CE00751BF4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2245EA12A0399CE00751BF4 /* Preview Assets.xcassets */; };
 		F2245EAC2A039E2B00751BF4 /* FibriCheckCameraSDK in Frameworks */ = {isa = PBXBuildFile; productRef = F2245EAB2A039E2B00751BF4 /* FibriCheckCameraSDK */; };
-		F248B91D2A03E40700257A5F /* FibriCheckExampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248B91C2A03E40700257A5F /* FibriCheckExampleTests.swift */; };
-		F248B9242A03E64C00257A5F /* FibriCheckCameraSDK in Frameworks */ = {isa = PBXBuildFile; productRef = F248B9232A03E64C00257A5F /* FibriCheckCameraSDK */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		F248B91E2A03E40700257A5F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F2245E8F2A0399CD00751BF4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F2245E962A0399CD00751BF4;
-			remoteInfo = FibriCheckExample;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		F2245E972A0399CD00751BF4 /* FibriCheckExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FibriCheckExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -33,8 +22,6 @@
 		F2245E9E2A0399CE00751BF4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F2245EA12A0399CE00751BF4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		F2245EA92A039C7100751BF4 /* fibricheck-ios-native-camera-sdk */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "fibricheck-ios-native-camera-sdk"; path = ../..; sourceTree = "<group>"; };
-		F248B91A2A03E40700257A5F /* FibriCheckExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FibriCheckExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F248B91C2A03E40700257A5F /* FibriCheckExampleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FibriCheckExampleTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,14 +33,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F248B9172A03E40700257A5F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F248B9242A03E64C00257A5F /* FibriCheckCameraSDK in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -62,7 +41,6 @@
 			children = (
 				F2245EA82A039C7100751BF4 /* Packages */,
 				F2245E992A0399CD00751BF4 /* FibriCheckExample */,
-				F248B91B2A03E40700257A5F /* FibriCheckExampleTests */,
 				F2245E982A0399CD00751BF4 /* Products */,
 				F2245EAA2A039E2B00751BF4 /* Frameworks */,
 			);
@@ -72,7 +50,6 @@
 			isa = PBXGroup;
 			children = (
 				F2245E972A0399CD00751BF4 /* FibriCheckExample.app */,
-				F248B91A2A03E40700257A5F /* FibriCheckExampleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,14 +88,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		F248B91B2A03E40700257A5F /* FibriCheckExampleTests */ = {
-			isa = PBXGroup;
-			children = (
-				F248B91C2A03E40700257A5F /* FibriCheckExampleTests.swift */,
-			);
-			path = FibriCheckExampleTests;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -142,27 +111,6 @@
 			productReference = F2245E972A0399CD00751BF4 /* FibriCheckExample.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F248B9192A03E40700257A5F /* FibriCheckExampleTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F248B9222A03E40700257A5F /* Build configuration list for PBXNativeTarget "FibriCheckExampleTests" */;
-			buildPhases = (
-				F248B9162A03E40700257A5F /* Sources */,
-				F248B9172A03E40700257A5F /* Frameworks */,
-				F248B9182A03E40700257A5F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F248B91F2A03E40700257A5F /* PBXTargetDependency */,
-			);
-			name = FibriCheckExampleTests;
-			packageProductDependencies = (
-				F248B9232A03E64C00257A5F /* FibriCheckCameraSDK */,
-			);
-			productName = FibriCheckExampleTests;
-			productReference = F248B91A2A03E40700257A5F /* FibriCheckExampleTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -175,10 +123,6 @@
 				TargetAttributes = {
 					F2245E962A0399CD00751BF4 = {
 						CreatedOnToolsVersion = 14.3;
-					};
-					F248B9192A03E40700257A5F = {
-						CreatedOnToolsVersion = 14.3;
-						TestTargetID = F2245E962A0399CD00751BF4;
 					};
 				};
 			};
@@ -196,7 +140,6 @@
 			projectRoot = "";
 			targets = (
 				F2245E962A0399CD00751BF4 /* FibriCheckExample */,
-				F248B9192A03E40700257A5F /* FibriCheckExampleTests */,
 			);
 		};
 /* End PBXProject section */
@@ -208,13 +151,6 @@
 			files = (
 				F2245EA22A0399CE00751BF4 /* Preview Assets.xcassets in Resources */,
 				F2245E9F2A0399CE00751BF4 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F248B9182A03E40700257A5F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,23 +166,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F248B9162A03E40700257A5F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F248B91D2A03E40700257A5F /* FibriCheckExampleTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		F248B91F2A03E40700257A5F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F2245E962A0399CD00751BF4 /* FibriCheckExample */;
-			targetProxy = F248B91E2A03E40700257A5F /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F2245EA32A0399CE00751BF4 /* Debug */ = {
@@ -423,42 +344,6 @@
 			};
 			name = Release;
 		};
-		F248B9202A03E40700257A5F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JG8RKTA96T;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.FibriCheckExampleTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FibriCheckExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FibriCheckExample";
-			};
-			name = Debug;
-		};
-		F248B9212A03E40700257A5F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JG8RKTA96T;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.FibriCheckExampleTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FibriCheckExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FibriCheckExample";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -480,23 +365,10 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F248B9222A03E40700257A5F /* Build configuration list for PBXNativeTarget "FibriCheckExampleTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F248B9202A03E40700257A5F /* Debug */,
-				F248B9212A03E40700257A5F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		F2245EAB2A039E2B00751BF4 /* FibriCheckCameraSDK */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FibriCheckCameraSDK;
-		};
-		F248B9232A03E64C00257A5F /* FibriCheckCameraSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FibriCheckCameraSDK;
 		};
