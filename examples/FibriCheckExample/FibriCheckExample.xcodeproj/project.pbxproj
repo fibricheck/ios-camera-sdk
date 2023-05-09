@@ -14,6 +14,7 @@
 		F2245EAC2A039E2B00751BF4 /* FibriCheckCameraSDK in Frameworks */ = {isa = PBXBuildFile; productRef = F2245EAB2A039E2B00751BF4 /* FibriCheckCameraSDK */; };
 /* End PBXBuildFile section */
 
+
 /* Begin PBXFileReference section */
 		F2245E972A0399CD00751BF4 /* FibriCheckExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FibriCheckExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F2245E9A2A0399CD00751BF4 /* FibriCheckExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FibriCheckExampleApp.swift; sourceTree = "<group>"; };
@@ -166,6 +167,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
 
 /* Begin XCBuildConfiguration section */
 		F2245EA32A0399CE00751BF4 /* Debug */ = {
