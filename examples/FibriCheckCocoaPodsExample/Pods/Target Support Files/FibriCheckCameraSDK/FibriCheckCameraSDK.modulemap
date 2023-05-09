@@ -1,0 +1,6 @@
+framework module FibriCheckCameraSDK {
+  umbrella header "FibriCheckCameraSDK-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name                      = 'FibriCheckCameraSDK'
-    s.version                   = '0.1.1'
+    s.version                   = '0.1.2'
     s.summary                   = 'FibriCheck Camera SDK'
     s.homepage                  = 'https://github.com/fibricheck/'
     s.source                    = { :git => s.homepage + 'ios-camera-sdk.git', :tag => s.version}
@@ -8,6 +8,7 @@ Pod::Spec.new do |s|
     s.authors                   = { 'FibriCheck' => 'development@fibricheck.com' }
     s.source_files              = 'Sources/**/*.{m,h,swift}'
     s.public_header_files       = 'Sources/include/*.h'
+    s.exclude_files             = 'examples/**'
     s.swift_versions            = ['5.4', '5.5', '5.6', '5.7']
     s.ios.deployment_target     = '11.0'
   end
