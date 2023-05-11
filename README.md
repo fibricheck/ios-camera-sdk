@@ -3,6 +3,8 @@
 
 The iOS Camera SDK allows developers to integrate FibriCheck's heart rhythm analysis technology into their own application. The SDK interfaces with the smartphone's camera and generates a raw PPG signal and a rough heartrate estimation in beats per minute.
 
+This SDK should be used in conjunction with the FibriCheck Cloud. It only implements data acquisition and does not offer any stand-alone rate or rhythm diagnostic capabilities.
+
 **Important Compliance Notice!** This is an alpha release of the standalone FibriCheck Camera SDK for iOS. This repository is not yet certified within our quality management systems to be used in production environments. It can currently only be used for development/testing purposes.
 
 ## How to install 
