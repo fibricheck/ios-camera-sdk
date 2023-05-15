@@ -1,0 +1,16 @@
+{
+    "packages": {
+        ".": {
+            "release-type": "simple",
+            "extra-files": [
+                "README.md",
+                "FibriCheckCameraSDK.podspec",
+                {
+                    "type": "json",
+                    "path": "documentation/project_info.json",
+                    "jsonpath": "$.version"
+                }
+            ]
+        }
+    }
+}
