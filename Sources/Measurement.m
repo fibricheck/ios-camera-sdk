@@ -142,6 +142,9 @@
 
     meaModel[@"time"] = _time;
 
+    NSUInteger measurement_timestamp = _startTime * 1000;
+    meaModel[@"measurement_timestamp"] = @(measurement_timestamp);
+
     meaModel[@"heartRate"] = @(_heartRate);
 
     meaModel[@"attempts"] = @(_attempts);
