@@ -200,7 +200,7 @@
 // Method called when the notification is received
 - (void)inputPortFormatDescriptionDidChange:(NSNotification *)notification {
     // Handle the format description change
-    NSLog(@"Input port format description changed");
+    NSLog(@"Camera input port format description changed");
     if (self.session.inputs.count > 0) {
         AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
         AVCaptureInputPort *port = [input.ports objectAtIndex:0];
@@ -208,9 +208,8 @@
         CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
         self.dimensions = [NSString stringWithFormat:@"%dx%d", dimensions.width, dimensions.height];
         
-        NSLog(@"------- Currentzzzz camera resolution: %@", self.dimensions);
     } else {
-        NSLog(@"inputs not accesable");
+        NSLog(@"Camera Port Format Inputs not accessible");
     }
 }
 
