@@ -84,6 +84,8 @@ struct ContentView: View {
                                 
                                 func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement?) -> Void {
                                     
+                                    let result = measurement?.mapToJson()
+                                    
                                     print("Measurement Finalized")
                                     
                                 }
@@ -99,7 +101,7 @@ struct ContentView: View {
                                 fc.onPulseDetected = handlePulseDetection
                                 
                                 fc.accEnabled = true;
-                                fc.sampleTime = 10;
+                                fc.sampleTime = 2;
 
                                 fc.startMeasurement()
                                 
