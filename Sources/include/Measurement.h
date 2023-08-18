@@ -20,6 +20,7 @@
 @property BOOL skippedMovementDetection;
 @property BOOL skippedPulseDetection;
 @property BOOL skippedFingerDetection;
+@property NSMutableDictionary * technical_details;
 
 - (instancetype)initWithConfig:(ImageProcessorConfig*)config;
 

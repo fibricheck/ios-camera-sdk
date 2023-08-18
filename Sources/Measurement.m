@@ -22,6 +22,7 @@
         self.dataPoints = [NSMutableArray<DataPoint *> new];
         self.time = [NSMutableArray new];
         self.ppg = [NSMutableArray new];
+        self.technical_details = [[NSMutableDictionary alloc] init];
 
         self.quadrants = [[NSMutableArray alloc] initWithCapacity:_imageProcessorConfig.rowSize];
         for(int row = 0; row < _imageProcessorConfig.rowSize; row++) {
@@ -150,6 +151,8 @@
     meaModel[@"skippedPulseDetection"] = @(_skippedPulseDetection);
 
     meaModel[@"skippedFingerDetection"] = @(_skippedFingerDetection);
+
+    meaModel[@"technical_details"] = _technical_details;
 
     return [meaModel copy];
 }

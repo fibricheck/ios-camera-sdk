@@ -33,6 +33,9 @@
 @property NSInteger fingerBadCount;
 @property NSInteger fingerGoodCount;
 @property NSInteger previousTime;
+@property NSString* dimensions;
+@property float iso;
+@property float exposure;
 @property float accelerationFactor;
 
 @property MeasurementControllerState state;
@@ -88,6 +91,7 @@
 }
 
 - (void)unloadAll {
+    // NSLog(@"---------Removing observers-------");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     self.motionManager = nil;
@@ -156,6 +160,17 @@
         }
     }
 
+    AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
+    AVCaptureInputPort *port = [input.ports objectAtIndex:0];
+    
+    NSLog(@"Register observer to input port format description change");
+
+    // Register as an observer for the AVCaptureInputPortFormatDescriptionDidChangeNotification
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(inputPortFormatDescriptionDidChange:)
+                                                 name:AVCaptureInputPortFormatDescriptionDidChangeNotification
+                                               object:port];
+
     if ([self.camera lockForConfiguration:NULL]) {
         [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
         [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
@@ -172,10 +187,29 @@
     [self.session addOutput:videoOutput];
     [self.session startRunning];
 
+    
+    
+
     if (self.flashEnabled && [self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
         [self.camera lockForConfiguration:nil];
         self.camera.torchMode = AVCaptureTorchModeOn;
         [self.camera unlockForConfiguration];
+    }
+}
+
+// Method called when the notification is received
+- (void)inputPortFormatDescriptionDidChange:(NSNotification *)notification {
+    // Handle the format description change
+    NSLog(@"Camera input port format description changed");
+    if (self.session.inputs.count > 0) {
+        AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
+        AVCaptureInputPort *port = [input.ports objectAtIndex:0];
+        CMFormatDescriptionRef formatDescription = port.formatDescription;
+        CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
+        self.dimensions = [NSString stringWithFormat:@"%dx%d", dimensions.width, dimensions.height];
+        
+    } else {
+        NSLog(@"Camera Port Format Inputs not accessible");
     }
 }
 
@@ -196,7 +230,19 @@
 
 - (void)setCameraExposureMode:(AVCaptureExposureMode)exposureMode {
     [self.camera lockForConfiguration:nil];
-    [self.camera setExposureMode:exposureMode];
+    [self.camera setExposureMode:AVCaptureExposureModeCustom];
+    
+    float maxIso = self.camera.activeFormat.maxISO;
+    float minIso = self.camera.activeFormat.minISO;
+    
+    self.iso = self.camera.ISO > maxIso ? maxIso : self.camera.ISO;
+    self.iso = self.iso < minIso ? minIso : self.iso;
+    
+    CMTime currentExposure = self.camera.exposureDuration;
+    self.exposure = CMTimeGetSeconds(currentExposure);
+    
+    // NSLog(@"--------------------------Current iso: %f, current exposure: %f", self.iso, self.exposure);
+    [self.camera setExposureModeCustomWithDuration:currentExposure ISO:self.iso completionHandler:nil];
     [self.camera unlockForConfiguration];
 }
 
@@ -222,10 +268,12 @@
             break;
         case MeasurementControllerStateDetectingPulse:
             if (_pulseDetectionExpiryTime == 0 || _event == MeasurementControllerEventPulseDetected || _event == MeasurementControllerEventPulseDetectionTimeExpired) {
+                // NSLog(@"Going to calibration state: %lu", _pulseDetectionExpiryTime);
                 _state = MeasurementControllerStateCalibrating;
                 break;
             }
             if (_previousState != MeasurementControllerStateDetectingPulse) {
+                // NSLog(@"Checking pulse now: %lu", _pulseDetectionExpiryTime);
                 [self.beatListener clear];
                 _pulseDetectionStartTime = currentTime;
 
@@ -268,6 +316,8 @@
                 _previousState = MeasurementControllerStateRecording;
             }
 
+            [self checkMeasurementCompletion];
+
             [self collectMotionData:dp];
             dp.tms = (currentTime - self.recordingStartTime) * 1000;
             [self.beatListener correlateWithValue:dp.filterValue];
@@ -282,6 +332,9 @@
             break;
         case MeasurementControllerStateFinished:
             if (_previousState != MeasurementControllerStateFinished) {
+                self.measurement.technical_details[@"camera_resolution"] = self.dimensions;
+                self.measurement.technical_details[@"camera_iso"] = [NSNumber numberWithFloat: self.iso];
+                self.measurement.technical_details[@"camera_exposure_time"] = [NSNumber numberWithFloat: self.exposure*1000000000.0];
                 self.measurement.startTime = self.recordingStartTime;
                 self.measurement.heartRate = self.beatListener.heartRate;
                 self.measurement.skippedMovementDetection = self.skippedMovementDetection;
