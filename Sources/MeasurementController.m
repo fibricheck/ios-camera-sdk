@@ -160,6 +160,17 @@
         }
     }
 
+    AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
+    AVCaptureInputPort *port = [input.ports objectAtIndex:0];
+    
+    NSLog(@"Register observer to input port format description change");
+
+    // Register as an observer for the AVCaptureInputPortFormatDescriptionDidChangeNotification
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(inputPortFormatDescriptionDidChange:)
+                                                 name:AVCaptureInputPortFormatDescriptionDidChangeNotification
+                                               object:port];
+
     if ([self.camera lockForConfiguration:NULL]) {
         [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
         [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
@@ -176,14 +187,7 @@
     [self.session addOutput:videoOutput];
     [self.session startRunning];
 
-    AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
-    AVCaptureInputPort *port = [input.ports objectAtIndex:0];
     
-    // Register as an observer for the AVCaptureInputPortFormatDescriptionDidChangeNotification
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(inputPortFormatDescriptionDidChange:)
-                                                name:AVCaptureInputPortFormatDescriptionDidChangeNotification
-                                               object:port];
     
 
     if (self.flashEnabled && [self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
@@ -198,7 +202,7 @@
     // Handle the format description change
     NSLog(@"Input port format description changed");
     if (self.session.inputs.count > 0) {
-        AVCaptureInput *input = [self.session.inputs objectAtIndex:0]; // maybe search the input in array
+        AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
         AVCaptureInputPort *port = [input.ports objectAtIndex:0];
         CMFormatDescriptionRef formatDescription = port.formatDescription;
         CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
@@ -227,7 +231,6 @@
 
 - (void)setCameraExposureMode:(AVCaptureExposureMode)exposureMode {
     [self.camera lockForConfiguration:nil];
-    [self.camera setExposureMode:exposureMode];
     [self.camera setExposureMode:AVCaptureExposureModeCustom];
     
     float maxIso = self.camera.activeFormat.maxISO;
@@ -313,6 +316,8 @@
                 
                 _previousState = MeasurementControllerStateRecording;
             }
+
+            [self checkMeasurementCompletion];
 
             [self collectMotionData:dp];
             dp.tms = (currentTime - self.recordingStartTime) * 1000;

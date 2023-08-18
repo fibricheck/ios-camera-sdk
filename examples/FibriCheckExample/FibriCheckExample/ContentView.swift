@@ -99,6 +99,7 @@ struct ContentView: View {
                                 fc.onPulseDetected = handlePulseDetection
                                 
                                 fc.accEnabled = true;
+                                fc.sampleTime = 10;
 
                                 fc.startMeasurement()
                                 
