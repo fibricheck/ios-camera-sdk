@@ -8,6 +8,26 @@
 import SwiftUI
 import FibriCheckCameraSDK
 
+
+
+struct JsonTechDetails: Decodable {
+    let camera_iso: Int
+    let camera_resolution: String
+    let camera_exposure_time: Int
+}
+
+struct JsonMeasurementResult: Decodable {
+    let heartRate: Int
+    let time: [Int]
+    let attempts: UInt
+    let measurement_timestamp: UInt
+    let skippedMovementDetection: Bool
+    let skippedPulseDetection: Bool
+    let skippedFingerDetection: Bool
+    let quadrants: [[Dictionary<String,[Double]>]]
+    let technical_details: JsonTechDetails
+}
+
 struct ContentView: View {
     @State var heartRate: UInt = 0
     @State var logString: String = ""
@@ -79,11 +99,18 @@ struct ContentView: View {
     }
     func validateMeasurementData(measurement: FibriCheckCameraSDK.Measurement) -> Bool {
         
-        addToLogString(txt: "Received Meausrement - Validate Data")
-        addToLogString(txt: "HR: " + String(measurement.heartRate))
-        addToLogString(txt: "Time Vector Length" + String(measurement.time.count))
-        addToLogString(txt: "Quadrants Size:" + String(measurement.quadrants.count))
-        addToLogString(txt: "measurement_timestamp" + String(measurement.startTime))
+        // Validate measurement data by looking at the JSON result to make sure everything is included there
+        guard let res = measurement.mapToJson() else {
+            return false;
+        }
+        
+        let fcParsedResult: JsonMeasurementResult = try! JSONDecoder().decode(JsonMeasurementResult.self, from: res.data(using: .utf8)!)
+
+    
+        addToLogString(txt: "HR: " + String(fcParsedResult.heartRate))
+        addToLogString(txt: "Time Vector Length" + String(fcParsedResult.time.count))
+        addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
+        addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))
         
         return true
         
@@ -142,8 +169,9 @@ struct ContentView: View {
                     }
                     fc.onMeasurementError = onMeasurementError
                     
-                    func onMeasurementProcessed(_:FibriCheckCameraSDK.Measurement?) -> Void {
+                    func onMeasurementProcessed(measurement:FibriCheckCameraSDK.Measurement?) -> Void {
                         logEvent(name: "onMeasurementProcessed")
+                        let _ = validateMeasurementData(measurement: measurement!)
                     }
                     fc.onMeasurementProcessed = onMeasurementProcessed
                     
