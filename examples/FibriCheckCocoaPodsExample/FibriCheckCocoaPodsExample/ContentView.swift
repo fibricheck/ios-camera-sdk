@@ -17,7 +17,7 @@ struct JsonTechDetails: Decodable {
 }
 
 struct JsonMeasurementResult: Decodable {
-    let heartRate: Int
+    let heartrate: Int
     let time: [Int]
     let attempts: UInt
     let measurement_timestamp: UInt
@@ -107,7 +107,7 @@ struct ContentView: View {
         let fcParsedResult: JsonMeasurementResult = try! JSONDecoder().decode(JsonMeasurementResult.self, from: res.data(using: .utf8)!)
 
     
-        addToLogString(txt: "HR: " + String(fcParsedResult.heartRate))
+        addToLogString(txt: "HR: " + String(fcParsedResult.heartrate))
         addToLogString(txt: "Time Vector Length" + String(fcParsedResult.time.count))
         addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
         addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))

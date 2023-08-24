@@ -8,7 +8,7 @@
   "testSteps": [
     "Perform a default measurement"
   ],
-  "expectedResult": "The processed measurement contains: \n\n- `attempts`\n- `skippedPulseDetection`\n- `skippedFingerDetection`\n- `skippedMovementDetection`\n- `technical_details`\n- `heartRate`\n- `quadrants`\n- `time vector`\n- `measurement_timestamp`",
+  "expectedResult": "The processed measurement contains: \n\n- `attempts`\n- `skippedPulseDetection`\n- `skippedFingerDetection`\n- `skippedMovementDetection`\n- `technical_details`\n- `heartrate`\n- `quadrants`\n- `time vector`\n- `measurement_timestamp`",
   "requiredTestEnvironmentIds": [],
   "keyValues": [],
   "parentNames": [
