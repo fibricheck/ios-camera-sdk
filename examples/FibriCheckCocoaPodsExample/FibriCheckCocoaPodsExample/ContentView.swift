@@ -11,7 +11,7 @@ import FibriCheckCameraSDK
 
 
 struct JsonTechDetails: Decodable {
-    let camera_iso: Int
+    let camera_iso: Double
     let camera_resolution: String
     let camera_exposure_time: Int
 }
