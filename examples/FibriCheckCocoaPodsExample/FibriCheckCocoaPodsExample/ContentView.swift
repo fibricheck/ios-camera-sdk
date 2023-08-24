@@ -77,6 +77,17 @@ struct ContentView: View {
         }
         
     }
+    func validateMeasurementData(measurement: FibriCheckCameraSDK.Measurement) -> Bool {
+        
+        addToLogString(txt: "Received Meausrement - Validate Data")
+        addToLogString(txt: "HR: " + String(measurement.heartRate))
+        addToLogString(txt: "Time Vector Length" + String(measurement.time.count))
+        addToLogString(txt: "Quadrants Size:" + String(measurement.quadrants.count))
+        addToLogString(txt: "measurement_timestamp" + String(measurement.startTime))
+        
+        return true
+        
+    }
     var body: some View {
         VStack {
             Image(systemName: "globe")
