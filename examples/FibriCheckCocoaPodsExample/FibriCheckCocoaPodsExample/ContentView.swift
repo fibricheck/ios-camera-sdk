@@ -8,32 +8,113 @@
 import SwiftUI
 import FibriCheckCameraSDK
 
+
+
+struct JsonTechDetails: Decodable {
+    let camera_iso: Double
+    let camera_resolution: String
+    let camera_exposure_time: Int
+}
+
+struct JsonMeasurementResult: Decodable {
+    let heartrate: Int
+    let time: [Int]
+    let attempts: UInt
+    let measurement_timestamp: UInt
+    let skippedMovementDetection: Bool
+    let skippedPulseDetection: Bool
+    let skippedFingerDetection: Bool
+    let quadrants: [[Dictionary<String,[Double]>]]
+    let technical_details: JsonTechDetails
+}
+
 struct ContentView: View {
     @State var heartRate: UInt = 0
+    @State var logString: String = ""
+    @State var receivedEvents = [
+        "onFingerDetected": false,
+        "onFingerRemoved": false,
+        "onHeartBeat": false,
+        "onPulseDetected": false,
+        "onCalibrationReady": false,
+        "onPulseDetectionTimeExpired": false,
+        "onFingerDetectionTimeExpired": false,
+        "onMovementDetected": false,
+        "onMeasurementStart": false,
+        "onMeasurementFinished": false,
+        "onMeasurementError": false,
+        "onMeasurementProcessed": false,
+        "onSampleReady": false,
+        "onTimeRemaining": false
+        
+    ]
+    @State var receivedEventsString = ""
+    var dateFormatter: DateFormatter
     
     
     init() {
-            var isAuthorized: Bool {
-                get async {
-                    let status = AVCaptureDevice.authorizationStatus(for: .video)
-                    
-                    // Determine if the user previously authorized camera access.
-                    var isAuthorized = status == .authorized
-                    
-                    // If the system hasn't determined the user's authorization status,
-                    // explicitly prompt them for approval.
-                    if status == .notDetermined {
-                        isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
-                    }
-                    
-                    return isAuthorized
+        dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm:ss:SSS"
+        var isAuthorized: Bool {
+            get async {
+                let status = AVCaptureDevice.authorizationStatus(for: .video)
+                
+                // Determine if the user previously authorized camera access.
+                var isAuthorized = status == .authorized
+                
+                // If the system hasn't determined the user's authorization status,
+                // explicitly prompt them for approval.
+                if status == .notDetermined {
+                    isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
                 }
-            }
-            
-            Task {
-                guard await isAuthorized else {return}
+                
+                return isAuthorized
             }
         }
+        
+        Task {
+            guard await isAuthorized else {return}
+        }
+    }
+    
+    func addToLogString(txt: String) {
+        let date = Date()
+        self.logString += "\n" + dateFormatter.string(from: date) + " - " + txt
+    }
+    func logEvent(name: String) {
+        
+        receivedEvents[name] = true
+        
+        // Update received Events String
+        receivedEventsString = ""
+        for (name, val) in receivedEvents {
+            
+            if(val) {
+                receivedEventsString += "✅ " + name + "\n"
+            } else {
+                receivedEventsString += "❌ " + name + "\n"
+            }
+        }
+        
+    }
+    func validateMeasurementData(measurement: FibriCheckCameraSDK.Measurement) -> Bool {
+        
+        // Validate measurement data by looking at the JSON result to make sure everything is included there
+        guard let res = measurement.mapToJson() else {
+            return false;
+        }
+        
+        let fcParsedResult: JsonMeasurementResult = try! JSONDecoder().decode(JsonMeasurementResult.self, from: res.data(using: .utf8)!)
+
+    
+        addToLogString(txt: "HR: " + String(fcParsedResult.heartrate))
+        addToLogString(txt: "Time Vector Length" + String(fcParsedResult.time.count))
+        addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
+        addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))
+        
+        return true
+        
+    }
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -42,68 +123,124 @@ struct ContentView: View {
             Text("FibriCheck Example Application")
             Text("Heartrate: " + String(heartRate))
             Button("Start Measurement", action: {
-                            let viewSelf = self
-                            
-                            
-                            Task.detached {
-                            
-                                var threadDone = false
-                            
-                                func handleError(_: String?) -> Void {
-                                    print("There was a measurement error")
-                                    threadDone = true
-                                }
-
-                                func handleMeasurementStart() -> Void {
-                                    print("Measurement started")
-
-                                }
-
-                                func handleMeasurementFinished() -> Void {
-                                    print("Measurement finished")
-                                    threadDone = true
-                                }
-
-                                func handleHeartRate(hr: UInt) -> Void {
-                                    print("Received HeartRate " + String(hr))
-                                    DispatchQueue.main.async {
-                                        print("Update HeartRate")
-                                        viewSelf.heartRate = hr
-                                    }
-
-                                }
-
-                                func handleMovementDetected() -> Void {
-                                    print("Movement Detected")
-                                }
-                                
-                                
-                                func handlePulseDetection() -> Void {
-                                    print("Pulse Detected")
-                                }
-                           
-                                let fc = FibriChecker()
-                                
-                                fc.onMeasurementError = handleError
-                                fc.onMeasurementStart = handleMeasurementStart
-                                fc.onMovementDetected = handleMovementDetected
-                                fc.onMeasurementFinished = handleMeasurementFinished
-                                fc.onHeartBeat = handleHeartRate
-                                fc.onPulseDetected = handlePulseDetection
-
-                                fc.startMeasurement()
-                                
-                                while !threadDone {
-                                    usleep(1)
-                                }
-                            }
-                            
-                            
-                            
-                            
-                            
-                            
+                let viewSelf = self
+                
+                addToLogString(txt: "Button Press")
+                Task.detached {
+                    
+                    var threadDone = false
+                    let fc = FibriChecker()
+                    
+                    fc.sampleTime = 10;
+                    fc.pulseDetectionExpiryTime = 15000;
+//                    fc.fingerDetectionExpiryTime = 500000;
+                    
+                    func onFingerDetected() -> Void {
+                        logEvent(name: "onFingerDetected")
+                    }
+                    fc.onFingerDetected = onFingerDetected
+                    
+                    func onFingerRemoved(_:Double,_:Double,_:Double) -> Void {
+                        logEvent(name: "onFingerRemoved")
+                    }
+                    fc.onFingerRemoved = onFingerRemoved
+                    
+                    
+                    func onCalibrationReady() -> Void {
+                        logEvent(name: "onCalibrationReady")
+                    }
+                    fc.onCalibrationReady = onCalibrationReady
+                    
+                    func onPulseDetectionTimeExpired() -> Void {
+                        logEvent(name: "onPulseDetectionTimeExpired")
+                    }
+                    fc.onPulseDetectionTimeExpired = onPulseDetectionTimeExpired
+                    
+                    func onFingerDetectionTimeExpired() -> Void {
+                        logEvent(name: "onFingerDetectionTimeExpired")
+                        addToLogString(txt: "onFingerDetectionTimeExpired")
+                    }
+                    fc.onFingerDetectionTimeExpired = onFingerDetectionTimeExpired
+                    
+                    func onMeasurementError(_:String?) -> Void {
+                        logEvent(name: "onMeasurementError")
+                        print("There was a measurement error")
+                        threadDone = true
+                    }
+                    fc.onMeasurementError = onMeasurementError
+                    
+                    func onMeasurementProcessed(measurement:FibriCheckCameraSDK.Measurement?) -> Void {
+                        logEvent(name: "onMeasurementProcessed")
+                        let _ = validateMeasurementData(measurement: measurement!)
+                    }
+                    fc.onMeasurementProcessed = onMeasurementProcessed
+                    
+                    func onSampleReady(_:Double, _:Double) -> Void {
+                        logEvent(name: "onSampleReady")
+                    }
+                    fc.onSampleReady = onSampleReady
+                    
+                    func onTimeRemaining(_:UInt) -> Void {
+                        logEvent(name: "onTimeRemaining")
+                    }
+                    fc.onTimeRemaining = onTimeRemaining
+                    
+                    func onMeasurementStart() -> Void {
+                        logEvent(name: "onMeasurementStart")
+                        addToLogString(txt: "measurement started")
+                    }
+                    fc.onMeasurementStart = onMeasurementStart
+                    
+                    
+                    func onMeasurementFinished() -> Void {
+                        logEvent(name: "onMeasurementFinished")
+                        
+                        print("Measurement finished")
+                        addToLogString(txt: "measurement finished")
+                        threadDone = true
+                    }
+                    fc.onMeasurementFinished = onMeasurementFinished
+                    
+                    
+                    func onHeartBeat(hr: UInt) -> Void {
+                        logEvent(name: "onHeartBeat")
+                        print("Received HeartRate " + String(hr))
+                        
+                        DispatchQueue.main.async {
+                            print("Update HeartRate")
+                            viewSelf.heartRate = hr
+                        }
+                        
+                    }
+                    fc.onHeartBeat = onHeartBeat
+                    
+                    
+                    func onMovementDetected() -> Void {
+                        logEvent(name: "onMovementDetected")
+                    }
+                    fc.onMovementDetected = onMovementDetected
+                    
+                    func onPulseDetected() -> Void {
+                        logEvent(name: "onPulseDetected")
+                    }
+                    fc.onPulseDetected = onPulseDetected
+                    
+                    
+                    fc.startMeasurement()
+                    
+                    while !threadDone {
+                        usleep(1)
+                    }
+                }
+                
+                
+                
+                
+                
+                
             }).buttonStyle(.bordered)
+            Text(receivedEventsString)
+            Text(logString)
         }
         .padding()
     }
