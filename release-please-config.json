@@ -5,7 +5,11 @@
             "extra-files": [
                 "README.md",
                 "FibriCheckCameraSDK.podspec",
-                "documentation/project_info.json"
+                {
+                    "type": "json",
+                    "path": "documentation/project_info.json",
+                    "jsonpath": "$.version"
+                }
             ]
         }
     }
