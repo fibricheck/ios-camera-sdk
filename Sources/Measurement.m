@@ -42,15 +42,20 @@
 
 - (void)processData {
     float yuvData[3] = {0.0, 0.0, 0.0};
+    int yuvDataLength = sizeof(yuvData) / sizeof(yuvData[0]);
+    
     for (DataPoint * dataPoint in self.dataPoints) {
         [self.time addObject:@(dataPoint.tms)];
         [self.ppg addObject:@(dataPoint.filterValue)];
+        
         for (int row = 0; row < self.imageProcessorConfig.rowSize; row++) {
-            for(int col = 0; col < self.imageProcessorConfig.colSize; col++) {
-                int rowCol = ((row * 3) + col) * 3;
-                for (int yuvIndex = 0; yuvIndex < 3; yuvIndex++) {
+            for (int col = 0; col < self.imageProcessorConfig.colSize; col++) {
+                int rowCol = ((row * self.imageProcessorConfig.rowSize) + col) * yuvDataLength;
+                
+                for (int yuvIndex = 0; yuvIndex < yuvDataLength; yuvIndex++) {
                     yuvData[yuvIndex] = dataPoint.quadrants[rowCol + yuvIndex];
                 }
+                
                 [self.quadrants[row][col] addValueY:yuvData[0] U:yuvData[1] V:yuvData[2]];
             }
         }
