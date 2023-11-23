@@ -1,0 +1,20 @@
+{
+  "id": "UYI2N",
+  "name": "Check if all quadrants contain unique data",
+  "type": "manual",
+  "tier": "None",
+  "planStatus": "Planned",
+  "motivation": "",
+  "testSteps": [
+    "Perform a measurement"
+  ],
+  "expectedResult": "All processed quadrants should contain unique data",
+  "requiredTestEnvironmentIds": [],
+  "keyValues": [],
+  "parentNames": [
+    "Execute a measurement",
+    "Post Processing",
+    "The Processed measurement contains all the requested data"
+  ],
+  "updatedTime": 1700737032786
+}

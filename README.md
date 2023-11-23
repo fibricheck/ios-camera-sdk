@@ -41,5 +41,10 @@ import FibriCheckCameraSDK
 The `examples` folder contains two example iOS projects that use the SDK.  
 For more information on how to integrate FibriCheck in your application, see the [FibriCheck Developer Documentation](https://docs.fibricheck.com/introduction/)
 
+## Releasing a new version
+To release a new version, follow the [git convention](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+When a new PR to the `main` branch is merged, it will trigger the release process, taking into account all eligible commits since the last version tag.
+The changelog and version bumps will be automatically generated.
+
 ## License
 This SDK is proprietary. See `LICENCE` for more information.
