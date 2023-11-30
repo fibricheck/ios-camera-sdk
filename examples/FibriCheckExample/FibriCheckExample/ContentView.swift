@@ -8,6 +8,37 @@
 import SwiftUI
 import FibriCheckCameraSDK
 
+
+func validateQuadrants(measurement: FibriCheckCameraSDK.Measurement) -> Bool {
+    
+    var yuvSampleSums: [Double] = []
+    
+    guard let quadrants = measurement.quadrants else {
+        return false
+    }
+    
+    //Get sum of first YUV item in every quadrant
+    for row in 0...3 {
+        let rowData = quadrants[row] as! NSArray
+        for col in 0...3 {
+            let data = rowData[col] as! FibriCheckCameraSDK.YUV
+
+            let y = (data.y as [AnyObject])[1] as! Double
+            let u = (data.u as [AnyObject])[1] as! Double
+            let v = (data.v as [AnyObject])[1] as! Double
+            yuvSampleSums.append(y+u+v)
+        }
+    }
+    
+    // Create a set out of the sumData array
+    let yuvSampleSumsSet: Set<Double> = Set(yuvSampleSums)
+    
+    //If array length equals set length, there are no unique values, which is what we want
+    let isUnique: Bool = yuvSampleSums.count == yuvSampleSumsSet.count
+    
+    return isUnique
+}
+
 struct ContentView: View {
     @State var heartRate: UInt = 0
     
@@ -84,9 +115,13 @@ struct ContentView: View {
                                 
                                 func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement?) -> Void {
                                     
-                                    let result = measurement?.mapToJson()
+                                    guard let measurement = measurement else { return }
+                                    let _ = measurement.mapToJson()
+                                    let _ = measurement.mapToDictionary()
                                     
                                     print("Measurement Finalized")
+                                    let validationResult = validateQuadrants(measurement: measurement)
+                                    print("Quadrant Validation Result: " + String(validationResult))
                                     
                                 }
                            
