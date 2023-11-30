@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/fibricheck/ios-camera-sdk/compare/v1.0.0...v1.0.1) (2023-11-30)
+
+
+### Bug Fixes
+
+* Quadrant bugfix FCS-52 ([fbf4170](https://github.com/fibricheck/ios-camera-sdk/commit/fbf4170d179f0c2ee36ef4edcab4087053cc2d5c))
+
 ## [1.0.0](https://github.com/fibricheck/ios-camera-sdk/compare/v0.1.3...v1.0.0) (2023-09-25)
 
 
