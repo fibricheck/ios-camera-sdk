@@ -1,7 +1,7 @@
 
-#import "Filter.h"
+#import "FCFilter.h"
 
-@implementation Filter
+@implementation FCFilter
 
 - (id)initHighPass {
     self = [super init];

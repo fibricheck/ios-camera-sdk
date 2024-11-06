@@ -364,7 +364,7 @@
         self.fingerGoodCount = 0;
     }
 
-    if ((self.initialFingerDetectionState || self.fingerDetected) && self.fingerBadCount >= FINGER_BAD_COUNT) {
+    if (self.fingerDetectionExpiryTime != 0 && (self.initialFingerDetectionState || self.fingerDetected) && self.fingerBadCount >= FINGER_BAD_COUNT) {
         self.fingerDetected = NO;
         self.initialFingerDetectionState = NO;
         self.state = MeasurementControllerStateDetectingFinger;
