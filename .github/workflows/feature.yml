@@ -17,7 +17,7 @@ jobs:
           with:
             command: manifest
             prerelease: true
-            release-as: 1.0.2.pre.1
+            release-as: 1.0.2-alpha
             release-type: simple
             extra-files: |
               README.md
