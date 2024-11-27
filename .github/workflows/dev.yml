@@ -1,13 +1,13 @@
 on:
     push:
       branches:
-        - feature/*
+        - dev
 
 permissions:
     contents: write
     pull-requests: write
 
-name: Pre Release
+name: Release
 
 jobs:
     release-new-version:
@@ -16,8 +16,6 @@ jobs:
         - uses: google-github-actions/release-please-action@v3
           with:
             command: manifest
-            prerelease: true
-            release-as: 1.0.2-beta
             release-type: simple
             extra-files: |
               README.md
