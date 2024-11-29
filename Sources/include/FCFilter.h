@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-@interface Filter : NSObject{
+@interface FCFilter : NSObject{
     float output;
     double count;
     float * a;

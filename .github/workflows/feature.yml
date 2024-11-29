@@ -1,0 +1,24 @@
+on:
+    push:
+      branches:
+        - feature/*
+
+permissions:
+    contents: write
+    pull-requests: write
+
+name: Pre Release
+
+jobs:
+    release-new-version:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: google-github-actions/release-please-action@v3
+          with:
+            command: manifest
+            prerelease: true
+            release-as: 1.0.2-beta
+            release-type: simple
+            extra-files: |
+              README.md
+              FibriCheckCameraSDK.podspec

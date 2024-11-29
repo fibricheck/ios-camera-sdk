@@ -15,7 +15,7 @@
 #import "FCSGFilter.h"
 #import "FibriChecker.h"
 #import "FibriCheckerComponent.h"
-#import "Filter.h"
+#import "FCFilter.h"
 #import "ImageProcessor.h"
 #import "ImageProcessorConfig.h"
 #import "Measurement.h"
