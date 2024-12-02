@@ -6,9 +6,9 @@
   "planStatus": "Planned",
   "motivation": "",
   "testSteps": [
-    "Perform a recording with the "
+    "Perform a recording with the movementDetectionEnabled set to false"
   ],
-  "expectedResult": "",
+  "expectedResult": "The data in the `onMeasurementProcessed` event contains accelerometer data.",
   "requiredTestEnvironmentIds": [],
   "keyValues": [],
   "parentNames": [
@@ -16,5 +16,5 @@
     "Ability to change the properties in the Camera SDK",
     "[Measurement sensors] gravEnabled - gyroEnabled - accEnabled - rotationEnabled - movementDetectionEnabled"
   ],
-  "updatedTime": 1733137015456
+  "updatedTime": 1733149904000
 }
