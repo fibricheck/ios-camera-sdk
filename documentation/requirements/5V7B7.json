@@ -1,0 +1,13 @@
+{
+  "id": "5V7B7",
+  "name": "The iOS Camera SDK is compatible with RN version 0.71.19 <= x <= 0.76.3",
+  "description": "",
+  "type": "specification",
+  "origin": "user_need",
+  "keyValues": [],
+  "attachments": [],
+  "testIds": [
+    "FBUXJ"
+  ],
+  "updatedTime": 1733135522804
+}
