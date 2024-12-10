@@ -1,0 +1,11 @@
+{
+  "id": "QMDVK",
+  "name": "The iOS Camera SDK must be compatible with the React Native cross-platform framework",
+  "description": "",
+  "type": "requirement",
+  "origin": "user_need",
+  "keyValues": [],
+  "attachments": [],
+  "testIds": [],
+  "updatedTime": 1733135494513
+}

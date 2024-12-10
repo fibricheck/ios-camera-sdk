@@ -1,6 +1,6 @@
 #import "ImageProcessor.h"
 #import "FCSGFilter.h"
-#import "Filter.h"
+#import "FCFilter.h"
 #import "DataPoint.h"
 #import "ImageProcessorConfig.h"
 #import "YUV.h"
@@ -15,7 +15,7 @@
 @interface ImageProcessor()
 
 @property float previousValue;
-@property Filter * filter;
+@property FCFilter * filter;
 @property FCSGFilter * fcsgFilter;
 
 @property NSUInteger maxYValue;
@@ -38,7 +38,7 @@
     if (self) {
         self.imageProcessorConfig = config;
         self.previousValue = 0;
-        self.filter = [[Filter alloc] initLowPass];
+        self.filter = [[FCFilter alloc] initLowPass];
         self.fcsgFilter = [FCSGFilter new];
         self.rowSize = self.imageProcessorConfig.rowSize;
         self.colSize = self.imageProcessorConfig.colSize;

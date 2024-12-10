@@ -364,7 +364,7 @@
         self.fingerGoodCount = 0;
     }
 
-    if ((self.initialFingerDetectionState || self.fingerDetected) && self.fingerBadCount >= FINGER_BAD_COUNT) {
+    if (self.fingerDetectionExpiryTime != 0 && (self.initialFingerDetectionState || self.fingerDetected) && self.fingerBadCount >= FINGER_BAD_COUNT) {
         self.fingerDetected = NO;
         self.initialFingerDetectionState = NO;
         self.state = MeasurementControllerStateDetectingFinger;
@@ -392,17 +392,17 @@
 }
 
 - (void) detectMovementWithAccX: (float) accx accY:(float)accy accZ:(float)accz {
-    if (self.movementDetectionEnabled) {
-        double accVector =  sqrt( pow(accx,2) + pow(accy,2) + pow(accz,2) );
-        if (accVector == 0) {
-            [self notifyDelegateDidReceiveBrokenAccSensorData];
-            [self stopCamera];
-        }
-        
-        if (accVector > self.movementVectorUpperLimit || accVector < self.movementVectorLowerLimit) {
+    double accVector =  sqrt( pow(accx,2) + pow(accy,2) + pow(accz,2) );
+    if (accVector == 0 && self.movementDetectionEnabled) {
+        [self notifyDelegateDidReceiveBrokenAccSensorData];
+        [self stopCamera];
+    }
+
+    if (accVector > self.movementVectorUpperLimit || accVector < self.movementVectorLowerLimit) {
+        if (self.movementDetectionEnabled) {
             self.state = MeasurementControllerStateDetectingFinger;
-            [self notifyDelegateDidReceiveMovement];
         }
+        [self notifyDelegateDidReceiveMovement];
     }
 }
 

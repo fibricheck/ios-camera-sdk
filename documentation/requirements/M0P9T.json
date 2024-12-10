@@ -1,0 +1,11 @@
+{
+  "id": "M0P9T",
+  "name": "Compatibility in cross-platform frameworks",
+  "description": "A primary use case of the iOS Camera SDK is that it can be embedded within other cross-platform frameworks.",
+  "type": "user_need",
+  "origin": "user_need",
+  "keyValues": [],
+  "attachments": [],
+  "testIds": [],
+  "updatedTime": 1733134903024
+}

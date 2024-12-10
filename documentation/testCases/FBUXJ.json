@@ -1,0 +1,21 @@
+{
+  "id": "FBUXJ",
+  "name": "Compatibility with RN version 0.76.3",
+  "type": "manual",
+  "tier": "Integration",
+  "planStatus": "Planned",
+  "motivation": "",
+  "testSteps": [
+    "Create a test application in React Native that uses React Native version 0.76.3 and that depends on the iOS Camera SDK version under test. (Preferably through using the React Native Camera SDK code)",
+    "Build the test application and verify that a measurement can be taken and that the `onMeasurementProcessed` listener returns a result."
+  ],
+  "expectedResult": "`onMeasurementProcessed` event returns a completed measurement object.",
+  "requiredTestEnvironmentIds": [],
+  "keyValues": [],
+  "parentNames": [
+    "Compatibility in cross-platform frameworks",
+    "The iOS Camera SDK must be compatible with the React Native cross-platform framework",
+    "The iOS Camera SDK is compatible with RN version 0.71.19 <= x <= 0.76.3"
+  ],
+  "updatedTime": 1733136053864
+}
