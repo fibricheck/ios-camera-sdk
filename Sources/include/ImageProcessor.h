@@ -7,6 +7,15 @@
 @interface ImageProcessor : NSObject
 
 /*!
+ *  Extracts the raw data from a video frame into one big array
+ *
+ *  @param sampleBuffer sampleBuffer from camera delegate function
+ *
+ *  @return A byte array containing the y, u, v frames concatenated.
+ */
+- (NSMutableData* _Nonnull)extractFrame:(CMSampleBufferRef)sampleBuffer imageWidth:(NSUInteger)imageWidth imageHeight:(NSUInteger)imageHeight;
+
+/*!
  *  Processes the CMSampleBufferRef from the Camera didoutputsample
  *
  *  @param sampleBuffer sampleBuffer from camera delegate function

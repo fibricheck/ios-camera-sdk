@@ -27,7 +27,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
     MeasurementControllerEventTimerAboveSampleTime,
     MeasurementControllerEventPulseDetectionTimeExpired,
     MeasurementControllerEventFingerDetectionTimeExpired,
-    MeasurementControllerEventStartRecording
+    MeasurementControllerEventStartRecording,
+    MeasurementControllerEventRawData
 };
 
 @interface MeasurementController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BeatListenerDelegate>
@@ -56,6 +57,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property (assign) NSUInteger minYValue;
 @property (assign) NSUInteger maxStdDevYValue;
 @property (assign) NSUInteger minVValue;
+@property (assign) NSUInteger imageWidth;
+@property (assign) NSUInteger imageHeight;
 
 @property Measurement * measurement;
 @property BeatListener * beatListener;
@@ -78,6 +81,7 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 - (void)measurementController:(MeasurementController *)measurementController heartRateUpdated:(NSUInteger)heartRate;
 - (void)measurementController:(MeasurementController *)measurementController didReceiveMeasurementError:(NSString*)message;
 - (void)measurementController:(MeasurementController *)measurementController didReceiveFingerRemoved:(DataPoint *)datapoint;
+- (void)measurementController:(MeasurementController *)measurementController onRawData:(NSMutableData * _Nonnull) data metaData:(NSDictionary<NSString*, NSString*>* _Nonnull) metaData;
 
 - (void)measurementControllerDidStartRecording;
 - (void)measurementControllerDidReceiveError;

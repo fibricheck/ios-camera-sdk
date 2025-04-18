@@ -72,6 +72,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     focusMode:(CameraSettingMode)focusMode
     manualFocus:(CGFloat)manualFocus
     hdrMode:(HdrMode)hdrMode
+    rawDataEnabled:(BOOL)rawDataEnabled
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
     logFocus:(BOOL)logFocus
@@ -88,6 +89,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         _focusMode = focusMode;
         _manualFocus = manualFocus;
         _hdrMode = hdrMode;
+        _rawDataEnabled = rawDataEnabled;
         _logExposure = logExposure;
         _logWhiteBalance = logWhiteBalance;
         _logFocus = logFocus;
@@ -118,6 +120,8 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         // Before these settings were added, focus acted in what is now called 'Auto' mode
         self.focusMode = CameraModeAuto;
         self.manualFocus = 0.0f;
+
+        self.rawDataEnabled = false;
         
         self.hdrMode = HdrAuto;
         
@@ -239,6 +243,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     self.focusMode = input.focusMode;
     self.manualFocus = input.manualFocus;
     self.hdrMode = input.hdrMode;
+    self.rawDataEnabled = input.rawDataEnabled;
     self.logExposure = input.logExposure;
     self.logWhiteBalance = input.logWhiteBalance;
     self.logFocus = input.logFocus;

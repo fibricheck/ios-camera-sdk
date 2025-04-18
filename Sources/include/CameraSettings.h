@@ -55,6 +55,7 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 @property (nonatomic, assign) CGFloat manualFocus;
 
 @property (nonatomic, assign) HdrMode hdrMode;
+@property (nonatomic, assign) BOOL rawDataEnabled;
 
 @property (nonatomic, assign) BOOL logExposure;
 @property (nonatomic, assign) BOOL logWhiteBalance;
@@ -73,6 +74,7 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
     manualFocus:(CGFloat)manualFocus
 
     hdrMode:(HdrMode)hdrMode
+    rawDataEnabled:(BOOL)rawDataEnabled
 
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
