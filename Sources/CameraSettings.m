@@ -64,6 +64,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     manualWhiteBalanceKelvin:(NSUInteger)manualWhiteBalanceKelvin
     focusMode:(CameraSettingMode)focusMode
     manualFocus:(CGFloat)manualFocus
+    rawDataEnabled:(BOOL)rawDataEnabled
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
     logFocus:(BOOL)logFocus {
@@ -78,6 +79,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         _manualWhiteBalanceKelvin = manualWhiteBalanceKelvin;
         _focusMode = focusMode;
         _manualFocus = manualFocus;
+        _rawDataEnabled = rawDataEnabled;
         _logExposure = logExposure;
         _logWhiteBalance = logWhiteBalance;
         _logFocus = logFocus;
@@ -107,6 +109,8 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         // Before these settings were added, focus acted in what is now called 'Auto' mode
         self.focusMode = CameraModeAuto;
         self.manualFocus = 0.0f;
+
+        self.rawDataEnabled = false;
         
         self.logExposure = false;
         self.logWhiteBalance = false;
@@ -209,6 +213,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     self.manualWhiteBalanceKelvin = input.manualWhiteBalanceKelvin;
     self.focusMode = input.focusMode;
     self.manualFocus = input.manualFocus;
+    self.rawDataEnabled = input.rawDataEnabled;
     self.logExposure = input.logExposure;
     self.logWhiteBalance = input.logWhiteBalance;
     self.logFocus = input.logFocus;

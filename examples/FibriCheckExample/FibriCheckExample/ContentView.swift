@@ -132,6 +132,10 @@ struct ContentView: View {
                                     print("Quadrant Validation Result: " + String(validationResult))
                                     
                                 }
+                                
+                                func onRawData(data: Data, metaData: [String: String]) -> Void {
+                                    print("RawData Received \(data.count)")
+                                }
                            
                                 let fc = FibriChecker()
 
@@ -142,6 +146,8 @@ struct ContentView: View {
                                 fc.onMeasurementProcessed = handleMeasurementProcessed
                                 fc.onHeartBeat = handleHeartRate
                                 fc.onPulseDetected = handlePulseDetection
+                                fc.onRawData = onRawData
+                                
                                 
                                 fc.accEnabled = true;
                                 fc.sampleTime = 10;
@@ -158,6 +164,8 @@ struct ContentView: View {
                                         
                                         focus: CameraSettingMode.modeLocked,
                                         manualFocus: 0,
+                                        
+                                        rawDataEnabled: true,
                                         
                                         logExposure: true,
                                         logWhiteBalance: true,

@@ -64,6 +64,8 @@
         _previousTime = _sampleTime;
         _attempts = 0;
         _cameraSettings =[[CameraSettings alloc] init];
+        _imageWidth = 0;
+        _imageHeight = 0;
     }
     return self;
 }
@@ -71,19 +73,19 @@
 - (void)startMeasurement {
     // Reset Values
     [self resetState];
-
+    
     // Init Helpers
     ImageProcessorConfig * config = [self configImageProcessor];
     self.measurement = [[Measurement alloc] initWithConfig:config];
     self.imageProcessor = [[ImageProcessor alloc] initWithConfig:config];
     self.beatListener = [BeatListener new];
-
+    
     //Motion
     [self startMovementDetection];
     [self registerForNotifications];
-
+    
     self.dispatchQueue = dispatch_queue_create("MeasureControllerDispatchQueue", DISPATCH_QUEUE_SERIAL);
-
+    
     [self startCamera];
 }
 
@@ -94,12 +96,12 @@
 - (void)unloadAll {
     // NSLog(@"---------Removing observers-------");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-
+    
     self.motionManager = nil;
     self.measurement = nil;
     self.imageProcessor = nil;
     self.beatListener = nil;
-
+    
     [self stopCamera];
 }
 
@@ -127,7 +129,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(resetState)
                                                  name:UIApplicationWillResignActiveNotification object:nil];
-
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(startCamera)
                                                  name:UIApplicationDidBecomeActiveNotification object:nil];
@@ -151,7 +153,7 @@
 - (void)startCamera {
     self.session = [AVCaptureSession new];
     self.camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-
+    
     NSError * error = nil;
     AVCaptureInput * cameraInput = [[AVCaptureDeviceInput alloc] initWithDevice:_camera error:&error];
     if (cameraInput) {
@@ -162,23 +164,24 @@
             [self.delegate measurementControllerDidReceiveError];
         }
     }
-
+    
     AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
     AVCaptureInputPort *port = [input.ports objectAtIndex:0];
     
     NSLog(@"Register observer to input port format description change");
-
+    
     // Register as an observer for the AVCaptureInputPortFormatDescriptionDidChangeNotification
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(inputPortFormatDescriptionDidChange:)
                                                  name:AVCaptureInputPortFormatDescriptionDidChangeNotification
                                                object:port];
-
+    
     if ([self.camera lockForConfiguration:NULL]) {
         [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
         [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
         [self.camera unlockForConfiguration];
     }
+    
     [self.cameraSettings apply:self.camera];
 
     AVCaptureVideoDataOutput * videoOutput = [AVCaptureVideoDataOutput new];
@@ -186,10 +189,10 @@
     videoOutput.videoSettings = @{(id)kCVPixelBufferPixelFormatTypeKey:
                                       @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
     videoOutput.alwaysDiscardsLateVideoFrames=NO;
-
+    
     [self.session addOutput:videoOutput];
     [self.session startRunning];
-
+    
     if (self.flashEnabled && [self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
         [self.camera lockForConfiguration:nil];
         self.camera.torchMode = AVCaptureTorchModeOn;
@@ -207,7 +210,8 @@
         CMFormatDescriptionRef formatDescription = port.formatDescription;
         CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
         self.dimensions = [NSString stringWithFormat:@"%dx%d", dimensions.width, dimensions.height];
-        
+        self.imageWidth = dimensions.width;
+        self.imageHeight = dimensions.height;
     } else {
         NSLog(@"Camera Port Format Inputs not accessible");
     }
@@ -217,7 +221,7 @@
     if (self.session) {
         [self.session stopRunning];
     }
-
+    
     AVCaptureDevice * camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     if (camera) {
         if (self.flashEnabled && [camera isTorchModeSupported:AVCaptureTorchModeOff]){
@@ -238,10 +242,165 @@
     [self.cameraSettings apply:self.camera];
 }
 
+- (NSString*)getFocusMode {
+    switch(self.camera.focusMode) {
+        case AVCaptureFocusModeLocked:
+            return @"locked";
+        case AVCaptureFocusModeAutoFocus:
+            return @"auto-focus";
+        case AVCaptureFocusModeContinuousAutoFocus:
+            return @"continuous-auto-focus";
+    }
+    
+    return @"unknown";
+}
+
+- (NSString*)getExposureMode {
+    switch(self.camera.exposureMode) {
+        case AVCaptureExposureModeCustom:
+            return @"custom";
+        case AVCaptureExposureModeLocked:
+            return @"locked";
+        case AVCaptureExposureModeAutoExpose:
+            return @"auto-exposure";
+        case AVCaptureExposureModeContinuousAutoExposure:
+            return @"continuous-auto-exposure";
+    }
+    
+    return @"unknown";
+}
+
+- (NSString*)getWhiteBalanceMode {
+    switch(self.camera.whiteBalanceMode) {
+        case AVCaptureWhiteBalanceModeLocked:
+            return @"locked";
+        case AVCaptureWhiteBalanceModeAutoWhiteBalance:
+            return @"auto-white-balance";
+        case AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance:
+            return @"continuous-auto-white-balance";
+    }
+    
+    return @"unknown";
+}
+
+- (NSString*)getActiveColorSpace {
+    switch(self.camera.activeColorSpace) {
+        case AVCaptureColorSpace_sRGB:
+            return @"sRGB";
+        case AVCaptureColorSpace_P3_D65:
+            return @"P3-D65";
+        case AVCaptureColorSpace_AppleLog:
+            return @"AppleLog";
+        case AVCaptureColorSpace_AppleLog2:
+            return @"AppleLog2";
+        case AVCaptureColorSpace_HLG_BT2020:
+            return @"HLG-BT2020";
+    }
+    
+    return @"unknown";
+}
+
+- (NSString*)getMinimumFocusDistance {
+    if (@available(iOS 15.0, *)) {
+        return [[NSNumber numberWithLong:self.camera.minimumFocusDistance] stringValue];
+    } else {
+        return @"unsupported";
+    }
+}
+
+- (NSString*)getIsGlobalTonemappingEnabled {
+    if (@available(iOS 13.0, *)) {
+        return self.camera.isGlobalToneMappingEnabled ? @"true" : @"false";
+    } else {
+        return @"unsupported";
+    }
+}
+
+- (NSString*)getIsGeometricDistortionCorrectionSupported {
+    if (@available(iOS 13.0, *)) {
+        return self.camera.isGeometricDistortionCorrectionSupported ? @"true" : @"false";
+    } else {
+        return @"unsupported";
+    }
+}
+
+- (NSString*)getIsGeometricDistortionCorrectionEnabled {
+    if (@available(iOS 13.0, *)) {
+        return self.camera.isGeometricDistortionCorrectionEnabled ? @"true" : @"false";
+    } else {
+        return @"unsupported";
+    }
+}
+
+- (NSDictionary*)getCameraSettings:(NSInteger)imageWidth imageHeight:(NSInteger)imageHeight {
+    if (self.dimensions == nil) {
+        NSDictionary *empty = @{};
+        return empty;
+    }
+
+    AVCaptureWhiteBalanceGains gains = self.camera.deviceWhiteBalanceGains;
+    AVCaptureWhiteBalanceGains grayGains = self.camera.grayWorldDeviceWhiteBalanceGains;
+    NSDictionary *metaData = @{
+        // General Info
+        @"modelId": self.camera.modelID,
+        @"imageWidth": [[NSNumber numberWithLong:imageWidth] stringValue],
+        @"imageHeight": [[NSNumber numberWithLong:imageHeight] stringValue],
+        @"imageDimensions": self.dimensions,
+        
+        // Focus
+        @"isAdjustingFocus": self.camera.isAdjustingFocus ? @"true" : @"false",
+        @"focusMode": [self getFocusMode],
+        @"minimumFocusDistance": [self getMinimumFocusDistance],
+        @"lensPosition": [[NSNumber numberWithFloat:self.camera.lensPosition] stringValue],
+        
+        // Exposure
+        @"isAdjustingExposure": self.camera.isAdjustingExposure ? @"true" : @"false",
+        @"exposureMode": [self getExposureMode],
+        @"iso": [[NSNumber numberWithFloat:self.camera.ISO] stringValue],
+        @"exposureTime": [[NSNumber numberWithLong:self.camera.exposureDuration.value] stringValue],
+        @"maxExposureTime": [[NSNumber numberWithLong:self.camera.activeMaxExposureDuration.value] stringValue],
+        @"exposureTargetOffset": [[NSNumber numberWithFloat:self.camera.exposureTargetOffset] stringValue],
+        @"exposureTargetBias": [[NSNumber numberWithFloat:self.camera.exposureTargetBias] stringValue],
+        @"minExposureTargetBias": [[NSNumber numberWithFloat:self.camera.minExposureTargetBias] stringValue],
+        @"maxExposureTargetBias": [[NSNumber numberWithFloat:self.camera.maxExposureTargetBias] stringValue],
+        @"lensAperture": [[NSNumber numberWithFloat:self.camera.lensAperture] stringValue],
+        
+        // White Balance
+        @"isAdjustingWhiteBalance": self.camera.isAdjustingWhiteBalance ? @"true" : @"false",
+        @"whiteBalanceMode": [self getWhiteBalanceMode],
+        @"whiteBalanceGains": [NSString stringWithFormat:@"{ 'r': %f, 'g': %f, 'b': %f }",  gains.redGain, gains.greenGain, gains.blueGain],
+        @"grayWorldWhiteBalanceGains": [NSString stringWithFormat:@"{ 'r': %f, 'g': %f, 'b': %f }",  grayGains.redGain, grayGains.greenGain, grayGains.blueGain],
+        @"maxWhiteBalanceGains": [[NSNumber numberWithFloat:self.camera.maxWhiteBalanceGain] stringValue],
+        
+        // HDR
+        @"isHdrEnabled": self.camera.isVideoHDREnabled ? @"true" : @"false",
+        @"automaticallyAdjustVideoHDREnabled": self.camera.automaticallyAdjustsVideoHDREnabled ? @"true" : @"false",
+        @"isGlobalToneMappingEnabled": [self getIsGlobalTonemappingEnabled],
+        @"activeColorSpace": [self getActiveColorSpace],
+        
+        // Zoom
+        @"zoomFactor": [[NSNumber numberWithFloat:self.camera.videoZoomFactor] stringValue],
+        @"minZoomFactor": [[NSNumber numberWithFloat:self.camera.minAvailableVideoZoomFactor] stringValue],
+        @"maxZoomFactor": [[NSNumber numberWithFloat:self.camera.maxAvailableVideoZoomFactor] stringValue],
+        @"isRampingVideoZoom": self.camera.isRampingVideoZoom ? @"true" : @"false",
+        @"isGeometricDistortionCorrectionSupported": [self getIsGeometricDistortionCorrectionSupported],
+        @"isGeometricDistortionCorrectionEnabled": [self getIsGeometricDistortionCorrectionEnabled],
+    };
+    
+    return metaData;
+}
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
     DataPoint *dp = [self.imageProcessor processImageBuffer:sampleBuffer];
     [self.cameraSettings updateAutoSettings:self.camera];
+    
+    if (self.cameraSettings.rawDataEnabled) {
+        NSMutableData *rawData = [self.imageProcessor extractFrame:sampleBuffer imageWidth:_imageWidth imageHeight:_imageHeight];
+        NSDictionary* metaData = [self getCameraSettings: _imageWidth imageHeight:_imageHeight];
+        [self notifyDelegateOnRawData:rawData metaData:metaData];
+    }
+       
     [self detectFinger:dp];
     switch (_state) {
         case MeasurementControllerStateDetectingFinger:
@@ -252,12 +411,12 @@
             if (_previousState != MeasurementControllerStateDetectingFinger) {
                 [self resetState];
                 _fingerDetectionStartTime = currentTime;
-
+                
                 [self notifyDelegateDidChangeState:MeasurementControllerStateDetectingFinger];
                 _previousState = MeasurementControllerStateDetectingFinger;
             }
             [self checkFingerDetectionTimer];
-
+            
             break;
         case MeasurementControllerStateDetectingPulse:
             if (_pulseDetectionExpiryTime == 0 || _event == MeasurementControllerEventPulseDetected || _event == MeasurementControllerEventPulseDetectionTimeExpired) {
@@ -269,30 +428,30 @@
                 // NSLog(@"Checking pulse now: %lu", _pulseDetectionExpiryTime);
                 [self.beatListener clear];
                 _pulseDetectionStartTime = currentTime;
-
+                
                 [self notifyDelegateDidChangeState:MeasurementControllerStateDetectingPulse];
                 _previousState = MeasurementControllerStateDetectingPulse;
             }
-
+            
             [self.beatListener correlateWithValue:dp.filterValue];
             [self notifyDelegateDidReceiveSample:dp];
             [self detectPulse];
             [self checkPulseDetectionTimer];
-
+            
             break;
         case MeasurementControllerStateCalibrating:
             if (_previousState != MeasurementControllerStateCalibrating) {
                 [self lockCameraSettings];
                 _calibrationStartTime = [[NSDate date] timeIntervalSince1970];
-
+                
                 [self notifyDelegateDidChangeState: MeasurementControllerStateCalibrating];
                 _previousState = MeasurementControllerStateCalibrating;
             }
-
+            
             [self.beatListener correlateWithValue:dp.filterValue];
             [self notifyDelegateDidReceiveSample:dp];
             [self checkCalibrationTimer];
-
+            
             break;
         case MeasurementControllerStateRecording:
             if (_event == MeasurementControllerEventTimerAboveSampleTime) {
@@ -302,26 +461,26 @@
                 _measurement = [[Measurement alloc] initWithConfig:[self configImageProcessor]];
                 _recordingStartTime = currentTime;
                 _attempts += 1;
-
+                
                 [self notifyDelegateDidStartRecording];
                 [self notifyDelegateDidChangeState: MeasurementControllerStateRecording];
                 
                 _previousState = MeasurementControllerStateRecording;
             }
-
+            
             [self checkMeasurementCompletion];
-
+            
             [self collectMotionData:dp];
             dp.tms = (currentTime - self.recordingStartTime) * 1000;
             [self.beatListener correlateWithValue:dp.filterValue];
             [self notifyDelegateDidReceiveSample:dp];
             [self.measurement addDataPoint:dp];
-
+            
             if (_beatListener.isPeakDetected && _beatListener.isValidPulse) {
                 [self notifyDelegateHeartRateUpdated:self.beatListener.heartRate];
             }
             [self checkMeasurementCompletion];
-
+            
             break;
         case MeasurementControllerStateFinished:
             if (_previousState != MeasurementControllerStateFinished) {
@@ -334,7 +493,7 @@
                 self.measurement.skippedFingerDetection = self.skippedFingerDetection;
                 self.measurement.skippedPulseDetection = self.skippedPulseDetection;
                 self.measurement.attempts = self.attempts;
-
+                
                 [self notifyDelegateDidChangeState:MeasurementControllerStateFinished];
                 _previousState = MeasurementControllerStateFinished;
             }
@@ -348,7 +507,7 @@
     if (_fingerDetectionExpiryTime == 0) {
         return;
     }
-
+    
     if ([self.imageProcessor fingerOnCamera:dp]) {
         self.fingerGoodCount++;
         self.fingerBadCount = 0;
@@ -356,7 +515,7 @@
         self.fingerBadCount++;
         self.fingerGoodCount = 0;
     }
-
+    
     if (self.fingerDetectionExpiryTime != 0 && (self.initialFingerDetectionState || self.fingerDetected) && self.fingerBadCount >= FINGER_BAD_COUNT) {
         self.fingerDetected = NO;
         self.initialFingerDetectionState = NO;
@@ -364,7 +523,7 @@
         self.event = MeasurementControllerEventFingerRemoved;
         [self notifyDelegateDidReceiveFingerRemoved:dp];
     }
-
+    
     if (!self.fingerDetected && self.fingerGoodCount > FINGER_GOOD_COUNT) {
         self.isFingerDetectionGracePeriodActive = YES;
         self.initialFingerDetectionState = NO;
@@ -390,7 +549,7 @@
         [self notifyDelegateDidReceiveBrokenAccSensorData];
         [self stopCamera];
     }
-
+    
     if (accVector > self.movementVectorUpperLimit || accVector < self.movementVectorLowerLimit) {
         if (self.movementDetectionEnabled) {
             self.state = MeasurementControllerStateDetectingFinger;
@@ -403,7 +562,7 @@
     float accx = self.motionManager.accelerometerData.acceleration.x * self.accelerationFactor;
     float accy = self.motionManager.accelerometerData.acceleration.y * self.accelerationFactor;
     float accz = self.motionManager.accelerometerData.acceleration.z * self.accelerationFactor;
-
+    
     if (self.accEnabled) {
         dp.hasAcc = YES;
         dp.accx = accx;
@@ -428,7 +587,7 @@
         dp.oriy = RADIANS_TO_DEGREES(self.motionManager.deviceMotion.attitude.roll) ;
         dp.oriz = RADIANS_TO_DEGREES(self.motionManager.deviceMotion.attitude.yaw);
     }
-
+    
     [self detectMovementWithAccX:accx accY:accy accZ:accz];
 }
 
@@ -437,7 +596,7 @@
         [self notifyDelegateCalibrationReady];
         self.calibrationReadyDispatched = YES;
     }
-
+    
     if (self.calibrationReadyDispatched && !self.waitForStartRecordingSignal) {
         self.state = MeasurementControllerStateRecording;
     }
@@ -462,12 +621,12 @@
 - (void) checkMeasurementCompletion {
     int elapsedTime = ([[NSDate date] timeIntervalSince1970] - self.recordingStartTime);
     long timeRemaining = self.sampleTime - elapsedTime;
-
+    
     if (timeRemaining != self.previousTime) {
         self.previousTime = timeRemaining;
         [self notifyDelegateProgressUpdated:timeRemaining];
     }
-
+    
     if (elapsedTime > self.sampleTime) {
         self.event = MeasurementControllerEventTimerAboveSampleTime;
     }
@@ -582,6 +741,14 @@
 
 - (CameraInfo*) cameraInfo {
     return [CameraInfo fromDevice:self.camera];
+}
+
+- (void)notifyDelegateOnRawData:(NSMutableData*) rawData metaData:(NSDictionary<NSString*, NSString*>*) metaData {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.delegate && [self.delegate respondsToSelector:@selector(measurementController:onRawData:metaData:)]) {
+            [self.delegate measurementController:self onRawData:rawData metaData:metaData];
+        }
+    });
 }
 
 @end

@@ -51,6 +51,69 @@
     return self;
 }
 
+- (NSMutableData *)extractFrame:(CMSampleBufferRef)sampleBuffer imageWidth:(NSUInteger)imageWidth imageHeight:(NSUInteger)imageHeight {
+    CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+
+    // The pixel buffer can have padding on either sides
+    size_t bufferHeight = CVPixelBufferGetHeight(pixelBuffer);
+    size_t bufferWidth = CVPixelBufferGetWidth(pixelBuffer);
+    size_t bufferSize = bufferWidth * bufferHeight;
+    
+    // Our output buffer won't have padding
+    size_t imageSize = imageWidth * imageHeight;
+
+    size_t lumaBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+    size_t chromaBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+
+    unsigned char *lumaBuffer = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+    unsigned char *chromaBuffer = (unsigned char *) CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+    NSMutableData *outputData = [NSMutableData dataWithLength: imageSize + imageSize / 2];
+    unsigned char *outputBuffer = (unsigned char *) outputData.mutableBytes;
+    
+    // The y values are next to eachother so we can use memcpy to speed things up
+    // If there is no padding we can copy the whole chunk in one go
+    if (bufferWidth == imageWidth) {
+        memcpy(outputBuffer, lumaBuffer, imageSize);
+    }
+    else {
+        // Else we have to do it row by row
+        for (int yLuma = 0; yLuma < imageHeight; yLuma++) {
+            // Different start calculations due to output being w/o padding, and input being with padding
+            unsigned char *outputRowStart = outputBuffer + (yLuma * imageWidth);
+            unsigned char *inputRowStart = lumaBuffer + (yLuma * lumaBytesPerRow);
+            
+            memcpy(outputRowStart, inputRowStart, bufferWidth);
+        }
+    }
+    
+    // The UV values are interleaved like so:
+    // u_1, v_1, u_2, v_2, ..., u_width, v_width  with potential padding afterwards
+    // So we can't use memcpy and have to do it one by one.
+    // outputU starts after the Y values, which have size of imageWidth * imageHeight
+    unsigned char *outputU = outputBuffer + imageSize;
+    // outputV starts after the U values, which have a size of (imageWidth / 2) * (imageHeight / 2) or imageWidth * imageHeight / 4
+    unsigned char *outputV = outputBuffer + imageSize + imageSize / 4;
+    
+    // The chroma planes are only 1/2 the size of the luma plane
+    // So there are only imageHeight / 2 rows
+    for (int yChroma = 0; yChroma < imageHeight / 2; yChroma++) {
+        // However, because U and V are interleaved the width is a full imageWidth size
+        for (int xChroma = 0; xChroma < imageWidth; xChroma += 2) {
+            
+            size_t chromaOutRowStart = (yChroma * (imageWidth / 2));
+            size_t chromaInRowStart = (yChroma * chromaBytesPerRow);
+            
+            outputU[chromaOutRowStart + xChroma / 2] = chromaBuffer[chromaInRowStart + xChroma];
+            outputV[chromaOutRowStart + xChroma / 2] = chromaBuffer[chromaInRowStart + xChroma + 1];
+        }
+    }
+    
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    
+    return outputData;
+}
+
 - (DataPoint*)processImageBuffer:(CMSampleBufferRef)sampleBuffer {
     float y_sum = 0;
     float v_sum = 0;

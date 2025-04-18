@@ -112,6 +112,12 @@
     }
 }
 
+- (void)measurementController:(MeasurementController *)measurementController onRawData:(NSMutableData *)data metaData:(NSDictionary *)metaData {
+    if (self.onRawData != nil) {
+        self.onRawData(data, metaData);
+    }
+}
+
 - (void)measurementController:(MeasurementController *)measurementController progressUpdated:(NSUInteger)elapsedTime {
     if (self.onTimeRemaining != nil) {
         self.onTimeRemaining(elapsedTime);

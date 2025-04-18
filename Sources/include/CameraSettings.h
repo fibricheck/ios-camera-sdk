@@ -48,6 +48,8 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 @property (nonatomic, assign) CameraSettingMode focusMode;
 @property (nonatomic, assign) CGFloat manualFocus;
 
+@property (nonatomic, assign) BOOL rawDataEnabled;
+
 @property (nonatomic, assign) BOOL logExposure;
 @property (nonatomic, assign) BOOL logWhiteBalance;
 @property (nonatomic, assign) BOOL logFocus;
@@ -62,6 +64,8 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 
     focusMode:(CameraSettingMode)focusMode
     manualFocus:(CGFloat)manualFocus
+
+    rawDataEnabled:(BOOL)rawDataEnabled
 
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
