@@ -6,6 +6,8 @@
 @class BeatListener;
 @class DataPoint;
 @class Measurement;
+@class CameraInfo;
+@class CameraSettings;
 
 @protocol MeasurementControllerDelegate;
 
@@ -58,6 +60,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property Measurement * measurement;
 @property BeatListener * beatListener;
 @property ImageProcessor * imageProcessor;
+@property (readonly) CameraInfo* cameraInfo;
+@property CameraSettings* cameraSettings;
 
 - (void)startMeasurement;
 - (void)startRecording;

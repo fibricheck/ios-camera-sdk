@@ -21,6 +21,7 @@
 @property BOOL skippedPulseDetection;
 @property BOOL skippedFingerDetection;
 @property NSMutableDictionary * technical_details;
+@property NSMutableDictionary* camera_settings;
 
 - (instancetype)initWithConfig:(ImageProcessorConfig*)config;
 

@@ -23,6 +23,7 @@
         self.time = [NSMutableArray new];
         self.ppg = [NSMutableArray new];
         self.technical_details = [[NSMutableDictionary alloc] init];
+        self.camera_settings = [[NSMutableDictionary alloc] init];
 
         self.quadrants = [[NSMutableArray alloc] initWithCapacity:_imageProcessorConfig.rowSize];
         for(int row = 0; row < _imageProcessorConfig.rowSize; row++) {
@@ -161,6 +162,10 @@
     meaModel[@"skippedFingerDetection"] = @(_skippedFingerDetection);
 
     meaModel[@"technical_details"] = _technical_details;
+    
+    if (_camera_settings.count > 0) {
+        meaModel[@"camera_settings"] = _camera_settings;
+    }
 
     return [meaModel copy];
 }

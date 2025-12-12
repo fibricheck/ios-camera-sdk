@@ -117,8 +117,16 @@ struct ContentView: View {
                                     
                                     guard let measurement = measurement else { return }
                                     let _ = measurement.mapToJson()
-                                    let _ = measurement.mapToDictionary()
+                                    let dict = measurement.mapToDictionary()!
+                                    let cameraSettings = dict["camera_settings"] as? NSMutableDictionary;
+                                    let technicalDetails = dict["technical_details"] as! NSMutableDictionary;
                                     
+                                    if (cameraSettings != nil) {
+                                        dump(cameraSettings);
+                                    }
+                                    
+                                    dump(technicalDetails);
+             
                                     print("Measurement Finalized")
                                     let validationResult = validateQuadrants(measurement: measurement)
                                     print("Quadrant Validation Result: " + String(validationResult))
@@ -136,7 +144,26 @@ struct ContentView: View {
                                 fc.onPulseDetected = handlePulseDetection
                                 
                                 fc.accEnabled = true;
-                                fc.sampleTime = 2;
+                                fc.sampleTime = 10;
+                                
+                                fc.setCameraSettings(
+                                    CameraSettingsInput(
+                                        values: CameraSettingMode.modeLocked,
+                                        manualIso: 0,
+                                        manualExposureTime: 0,
+                                        
+                                        whiteBalanceMode: WhiteBalanceMode.locked,
+                                        manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
+                                        manualWhiteBalanceKelvin: 5000,
+                                        
+                                        focus: CameraSettingMode.modeLocked,
+                                        manualFocus: 0,
+                                        
+                                        logExposure: true,
+                                        logWhiteBalance: true,
+                                        logFocus: true
+                                    )
+                                )
 
                                 fc.startMeasurement()
                                 

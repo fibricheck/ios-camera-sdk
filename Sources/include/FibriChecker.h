@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
 
 @class Measurement;
+@class CameraInfo;
+@class CameraSettingsInput;
 
 @interface FibriChecker : NSObject
 
@@ -32,6 +34,7 @@
 #pragma mark - Properties
 
 @property (readonly) NSUInteger heartRate;
+@property (readonly) CameraInfo* cameraInfo;
 
 #pragma mark - Callbacks
 
@@ -56,5 +59,6 @@
 -(void)startRecording;
 -(void)stop;
 -(void)updateConfiguration;
+-(void)setCameraSettings:(CameraSettingsInput*) input;
 
 @end

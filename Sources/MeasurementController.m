@@ -8,6 +8,8 @@
 #import "BeatListener.h"
 #import "ImageProcessor.h"
 #import "ImageProcessorConfig.h"
+#import "CameraInfo.h"
+#import "CameraSettings.h"
 
 #define FINGER_GOOD_COUNT 25
 #define FINGER_BAD_COUNT 7
@@ -34,8 +36,6 @@
 @property NSInteger fingerGoodCount;
 @property NSInteger previousTime;
 @property NSString* dimensions;
-@property float iso;
-@property float exposure;
 @property float accelerationFactor;
 
 @property MeasurementControllerState state;
@@ -63,6 +63,7 @@
         _initialFingerDetectionState = YES;
         _previousTime = _sampleTime;
         _attempts = 0;
+        _cameraSettings =[[CameraSettings alloc] init];
     }
     return self;
 }
@@ -114,7 +115,9 @@
 }
 
 - (void)resetState {
-    [self setCameraExposureMode:AVCaptureExposureModeContinuousAutoExposure];
+    [self.cameraSettings clear];
+    [self unlockCameraSettings];
+    [self.measurement.camera_settings removeAllObjects];
     self.fingerBadCount = self.fingerGoodCount = 0;
     self.calibrationReadyDispatched = self.fingerDetected = NO;
     self.initialFingerDetectionState = YES;
@@ -174,9 +177,9 @@
     if ([self.camera lockForConfiguration:NULL]) {
         [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
         [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
-        [self.camera setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
         [self.camera unlockForConfiguration];
     }
+    [self.cameraSettings apply:self.camera];
 
     AVCaptureVideoDataOutput * videoOutput = [AVCaptureVideoDataOutput new];
     [videoOutput setSampleBufferDelegate:self queue:self.dispatchQueue];
@@ -186,9 +189,6 @@
 
     [self.session addOutput:videoOutput];
     [self.session startRunning];
-
-    
-    
 
     if (self.flashEnabled && [self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
         [self.camera lockForConfiguration:nil];
@@ -228,27 +228,20 @@
     }
 }
 
-- (void)setCameraExposureMode:(AVCaptureExposureMode)exposureMode {
-    [self.camera lockForConfiguration:nil];
-    [self.camera setExposureMode:AVCaptureExposureModeCustom];
-    
-    float maxIso = self.camera.activeFormat.maxISO;
-    float minIso = self.camera.activeFormat.minISO;
-    
-    self.iso = self.camera.ISO > maxIso ? maxIso : self.camera.ISO;
-    self.iso = self.iso < minIso ? minIso : self.iso;
-    
-    CMTime currentExposure = self.camera.exposureDuration;
-    self.exposure = CMTimeGetSeconds(currentExposure);
-    
-    // NSLog(@"--------------------------Current iso: %f, current exposure: %f", self.iso, self.exposure);
-    [self.camera setExposureModeCustomWithDuration:currentExposure ISO:self.iso completionHandler:nil];
-    [self.camera unlockForConfiguration];
+- (void)unlockCameraSettings {
+    self.cameraSettings.cameraSettingState = CameraSettingStateCalibrating;
+    [self.cameraSettings apply:self.camera];
+}
+
+- (void)lockCameraSettings {
+    self.cameraSettings.cameraSettingState = CameraSettingStateRecording;
+    [self.cameraSettings apply:self.camera];
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
     DataPoint *dp = [self.imageProcessor processImageBuffer:sampleBuffer];
+    [self.cameraSettings updateAutoSettings:self.camera];
     [self detectFinger:dp];
     switch (_state) {
         case MeasurementControllerStateDetectingFinger:
@@ -289,7 +282,7 @@
             break;
         case MeasurementControllerStateCalibrating:
             if (_previousState != MeasurementControllerStateCalibrating) {
-                [self setCameraExposureMode:AVCaptureExposureModeLocked];
+                [self lockCameraSettings];
                 _calibrationStartTime = [[NSDate date] timeIntervalSince1970];
 
                 [self notifyDelegateDidChangeState: MeasurementControllerStateCalibrating];
@@ -333,8 +326,8 @@
         case MeasurementControllerStateFinished:
             if (_previousState != MeasurementControllerStateFinished) {
                 self.measurement.technical_details[@"camera_resolution"] = self.dimensions;
-                self.measurement.technical_details[@"camera_iso"] = [NSNumber numberWithFloat: self.iso];
-                self.measurement.technical_details[@"camera_exposure_time"] = [NSNumber numberWithFloat: self.exposure*1000000000.0];
+                [self.measurement.technical_details addEntriesFromDictionary:[self.cameraSettings getTechnicalDetailsOutput]];
+                self.measurement.camera_settings = [self.cameraSettings getCameraSettingsOutput];
                 self.measurement.startTime = self.recordingStartTime;
                 self.measurement.heartRate = self.beatListener.heartRate;
                 self.measurement.skippedMovementDetection = self.skippedMovementDetection;
@@ -585,6 +578,10 @@
             [self.delegate measurementController:self didReceiveSample:dp];
         }
     });
+}
+
+- (CameraInfo*) cameraInfo {
+    return [CameraInfo fromDevice:self.camera];
 }
 
 @end

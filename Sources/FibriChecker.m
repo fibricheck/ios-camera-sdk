@@ -3,6 +3,8 @@
 #import "MeasurementController.h"
 #import "Measurement.h"
 #import "DataPoint.h"
+#import "CameraInfo.h"
+#import "CameraSettings.h"
 
 @interface FibriChecker()<MeasurementControllerDelegate>
 
@@ -174,6 +176,14 @@
     if (self.onFingerDetectionTimeExpired != nil) {
         self.onFingerDetectionTimeExpired();
     }
+}
+
+- (CameraInfo*)cameraInfo {
+    return [self.measurementController cameraInfo];
+}
+
+- (void) setCameraSettings:(CameraSettingsInput *)input {
+    [self.measurementController.cameraSettings set:input];
 }
 
 @end
