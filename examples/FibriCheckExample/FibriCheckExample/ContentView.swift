@@ -6,186 +6,223 @@
 //
 
 import SwiftUI
+import AVFoundation
 import FibriCheckCameraSDK
 
+// MARK: - Camera Preview
+
+private class VideoPreviewUIView: UIView {
+    private let previewLayer: AVCaptureVideoPreviewLayer
+
+    init(session: AVCaptureSession) {
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        super.init(frame: .zero)
+        previewLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(previewLayer)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) not supported") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        previewLayer.frame = bounds
+    }
+}
+
+private struct CameraPreviewView: UIViewRepresentable {
+    let session: AVCaptureSession
+
+    func makeUIView(context: Context) -> VideoPreviewUIView {
+        VideoPreviewUIView(session: session)
+    }
+
+    func updateUIView(_ uiView: VideoPreviewUIView, context: Context) {}
+}
+
+// MARK: - ViewModel
+
+class MeasurementViewModel: ObservableObject {
+    var cameraSettings: CameraSettingsInput = CameraSettingsInput(
+        values: .modeLocked,
+        manualIso: 0,
+        manualExposureTime: 0,
+        whiteBalanceMode: .locked,
+        manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
+        manualWhiteBalanceKelvin: 5000,
+        focus: .modeLocked,
+        manualFocus: 0,
+        rawDataEnabled: false,
+        logExposure: true,
+        logWhiteBalance: true,
+        logFocus: true
+    )
+    
+    @Published var heartRate: UInt = 0
+    @Published var isRunning = false
+    @Published var rawDataEnabled = false {
+        didSet {
+            guard oldValue != rawDataEnabled else { return }
+            self.cameraSettings.rawDataEnabled = rawDataEnabled
+            fibriChecker.setCameraSettings(self.cameraSettings)
+        }
+    }
+    @Published var previewEnabled = false {
+        didSet {
+            guard oldValue != previewEnabled else { return }
+            if previewEnabled {
+                print("[ContentView][startPreview]")
+                fibriChecker.startPreview()
+            } else {
+                print("[ContentView][stopPreview]")
+                fibriChecker.stopPreview()
+            }
+        }
+    }
+
+    private let fibriChecker = FibriChecker()
+
+    var captureSession: AVCaptureSession? {
+        fibriChecker.captureSession
+    }
+
+    init() {
+        requestCameraAccess()
+        setupCallbacks()
+        fibriChecker.accEnabled = true
+        fibriChecker.sampleTime = 10
+        fibriChecker.flashEnabled = true
+        fibriChecker.setCameraSettings(self.cameraSettings)
+    }
+
+    private func requestCameraAccess() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
+            AVCaptureDevice.requestAccess(for: .video) { _ in }
+        }
+    }
+
+    private func setupCallbacks() {
+        fibriChecker.onMeasurementStart = { [weak self] in
+            print("Measurement started")
+            self?.heartRate = 0
+        }
+
+        fibriChecker.onMeasurementFinished = {
+            print("Measurement finished")
+        }
+
+        fibriChecker.onMeasurementError = { error in
+            print("Measurement error: \(error ?? "unknown")")
+        }
+
+        fibriChecker.onHeartBeat = { [weak self] hr in
+            print("Received HeartRate \(hr)")
+            self?.heartRate = hr
+        }
+
+        fibriChecker.onMovementDetected = {
+            print("Movement detected")
+        }
+
+        fibriChecker.onPulseDetected = {
+            print("Pulse detected")
+        }
+
+        fibriChecker.onMeasurementProcessed = { [weak self] measurement in
+            print("OnMeasurement")
+            let dict = measurement.mapToDictionary()!
+            let cameraSettings = dict["camera_settings"] as? NSMutableDictionary
+            let technicalDetails = dict["technical_details"] as! NSMutableDictionary
+
+            if let cameraSettings { dump(cameraSettings) }
+            dump(technicalDetails)
+
+            print("Measurement finalized")
+            let valid = validateQuadrants(measurement: measurement)
+            print("Quadrant validation result: \(valid)")
+
+            self?.isRunning = false
+            self?.previewEnabled = false
+        }
+
+        fibriChecker.onRawData = { data, _ in
+            print("Raw data received: \(data.count) bytes")
+        }
+        
+        fibriChecker.onPreviewStarted = { [weak self] in
+            print("onPreviewStarted")
+        }
+    }
+
+    func startMeasurement() {
+        print("[ContentView][startMeasurement]")
+        fibriChecker.startMeasurement()
+        isRunning = true
+        previewEnabled = false
+    }
+
+    func stop() {
+        print("Stop")
+        fibriChecker.stop()
+        isRunning = false
+        previewEnabled = false
+    }
+}
+
+// MARK: - Helpers
 
 func validateQuadrants(measurement: FibriCheckCameraSDK.Measurement) -> Bool {
-    
+    guard let quadrants = measurement.quadrants else { return false }
+
     var yuvSampleSums: [Double] = []
-    
-    guard let quadrants = measurement.quadrants else {
-        return false
-    }
-    
-    //Get sum of first YUV item in every quadrant
     for row in 0...3 {
         let rowData = quadrants[row] as! NSArray
         for col in 0...3 {
             let data = rowData[col] as! FibriCheckCameraSDK.YUV
-
             let y = (data.y as [AnyObject])[1] as! Double
             let u = (data.u as [AnyObject])[1] as! Double
             let v = (data.v as [AnyObject])[1] as! Double
-            yuvSampleSums.append(y+u+v)
+            yuvSampleSums.append(y + u + v)
         }
     }
-    
-    // Create a set out of the sumData array
-    let yuvSampleSumsSet: Set<Double> = Set(yuvSampleSums)
-    
-    //If array length equals set length, there are no unique values, which is what we want
-    let isUnique: Bool = yuvSampleSums.count == yuvSampleSumsSet.count
-    
-    return isUnique
+
+    return yuvSampleSums.count == Set(yuvSampleSums).count
 }
 
+// MARK: - View
+
 struct ContentView: View {
-    @State var heartRate: UInt = 0
-    
-    
-    init() {
-            var isAuthorized: Bool {
-                get async {
-                    let status = AVCaptureDevice.authorizationStatus(for: .video)
+    @StateObject private var viewModel = MeasurementViewModel()
 
-                    // Determine if the user previously authorized camera access.
-                    var isAuthorized = status == .authorized
-
-                    // If the system hasn't determined the user's authorization status,
-                    // explicitly prompt them for approval.
-                    if status == .notDetermined {
-                        isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
-                    }
-
-                    return isAuthorized
-                }
-            }
-
-            Task {
-                guard await isAuthorized else {return}
-            }
-        }
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
+            if viewModel.captureSession != nil,
+               let session = viewModel.captureSession {
+                CameraPreviewView(session: session)
+                    .frame(height: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundColor(.accentColor)
             Text("FibriCheck Example Application")
-            Text("Heartrate: " + String(heartRate))
-            Button("Start Measurement", action: {
-                            let viewSelf = self
-                            
-                            
-                            Task.detached {
-                            
-                                var threadDone = false
-                            
-                                func handleError(_: String?) -> Void {
-                                    print("There was a measurement error")
-                                    threadDone = true
-                                }
+            Text("Heart rate: \(viewModel.heartRate)")
 
-                                func handleMeasurementStart() -> Void {
-                                    print("Measurement started")
+            Toggle("Camera Preview", isOn: $viewModel.previewEnabled)
+            
 
-                                }
+            Toggle("Raw Data", isOn: $viewModel.rawDataEnabled)
+                .disabled(viewModel.isRunning)
 
-                                func handleMeasurementFinished() -> Void {
-                                    print("Measurement finished")
-                                    threadDone = true
-                                }
-
-                                func handleHeartRate(hr: UInt) -> Void {
-                                    print("Received HeartRate " + String(hr))
-                                    DispatchQueue.main.async {
-                                        print("Update HeartRate")
-                                        viewSelf.heartRate = hr
-                                    }
-
-                                }
-
-                                func handleMovementDetected() -> Void {
-                                    print("Movement Detected")
-                                }
-                                
-                                
-                                func handlePulseDetection() -> Void {
-                                    print("Pulse Detected")
-                                }
-                                
-                                func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement?) -> Void {
-                                    
-                                    guard let measurement = measurement else { return }
-                                    let _ = measurement.mapToJson()
-                                    let dict = measurement.mapToDictionary()!
-                                    let cameraSettings = dict["camera_settings"] as? NSMutableDictionary;
-                                    let technicalDetails = dict["technical_details"] as! NSMutableDictionary;
-                                    
-                                    if (cameraSettings != nil) {
-                                        dump(cameraSettings);
-                                    }
-                                    
-                                    dump(technicalDetails);
-             
-                                    print("Measurement Finalized")
-                                    let validationResult = validateQuadrants(measurement: measurement)
-                                    print("Quadrant Validation Result: " + String(validationResult))
-                                    
-                                }
-                                
-                                func onRawData(data: Data, metaData: [String: String]) -> Void {
-                                    print("RawData Received \(data.count)")
-                                }
-                           
-                                let fc = FibriChecker()
-
-                                fc.onMeasurementError = handleError
-                                fc.onMeasurementStart = handleMeasurementStart
-                                fc.onMovementDetected = handleMovementDetected
-                                fc.onMeasurementFinished = handleMeasurementFinished
-                                fc.onMeasurementProcessed = handleMeasurementProcessed
-                                fc.onHeartBeat = handleHeartRate
-                                fc.onPulseDetected = handlePulseDetection
-                                fc.onRawData = onRawData
-                                
-                                
-                                fc.accEnabled = true;
-                                fc.sampleTime = 10;
-                                
-                                fc.setCameraSettings(
-                                    CameraSettingsInput(
-                                        values: CameraSettingMode.modeLocked,
-                                        manualIso: 0,
-                                        manualExposureTime: 0,
-                                        
-                                        whiteBalanceMode: WhiteBalanceMode.locked,
-                                        manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
-                                        manualWhiteBalanceKelvin: 5000,
-                                        
-                                        focus: CameraSettingMode.modeLocked,
-                                        manualFocus: 0,
-                                        
-                                        rawDataEnabled: true,
-                                        
-                                        logExposure: true,
-                                        logWhiteBalance: true,
-                                        logFocus: true
-                                    )
-                                )
-
-                                fc.startMeasurement()
-                                
-                                while !threadDone {
-                                    usleep(1)
-                                }
-                            }
-                            
-                            
-                            
-                            
-                            
-                            
-            }).buttonStyle(.bordered)
+            Button(viewModel.isRunning ? "Stop Measurement" : "Start Measurement") {
+                if viewModel.isRunning {
+                    viewModel.stop()
+                } else {
+                    viewModel.startMeasurement()
+                }
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
     }
