@@ -54,6 +54,18 @@
     [self.measurementController startRecording];
 }
 
+- (void)startPreview {
+    [self.measurementController startPreview];
+}
+
+- (void)stopPreview {
+    [self.measurementController stopPreview];
+}
+
+- (AVCaptureSession *)captureSession {
+    return self.measurementController.captureSession;
+}
+
 - (void)stop {
     [self.measurementController unloadAll];
 }
@@ -92,6 +104,13 @@
 #pragma mark - MeasureControllerDelegate
 
 - (void)measurementController:(MeasurementController *)measurementController didChangeState:(MeasurementControllerState)state {
+    if (state == MeasurementControllerStatePreview) {
+        if (self.onPreviewStarted != nil) {
+            self.onPreviewStarted();
+        }
+        return;
+    }
+
     if (state == MeasurementControllerStateFinished) {
         if (self.onMeasurementFinished != nil) {
             self.onMeasurementFinished();

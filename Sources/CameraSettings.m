@@ -291,7 +291,8 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
 }
 
 - (void)apply:(AVCaptureDevice *)camera {
-    [camera lockForConfiguration:nil];
+    NSLog(@"[cameraSettings][apply]");
+    [camera lockForConfiguration: nil];
     [self applyExposure:camera];
     [self applyWhiteBalance:camera];
     [self applyFocus:camera];
