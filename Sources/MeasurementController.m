@@ -1,4 +1,6 @@
 #import "MeasurementController.h"
+#import <Foundation/NSObjCRuntime.h>
+#import <AVFoundation/AVFoundation.h>
 #import <CoreMotion/CoreMotion.h>
 #import <UIKit/UIKit.h>
 #import <mach/mach.h>
@@ -23,6 +25,7 @@
 @property BOOL isFingerDetectionGracePeriodActive;
 @property BOOL initialFingerDetectionState;
 @property BOOL calibrationReadyDispatched;
+@property BOOL isCameraInit;
 
 @property NSTimeInterval recordingStartTime;
 @property NSTimeInterval fingerDetectionStartTime;
@@ -41,6 +44,7 @@
 @property MeasurementControllerState state;
 @property MeasurementControllerState previousState;
 @property MeasurementControllerEvent event;
+@property (assign) BOOL previewEnabled;
 
 @property (nonatomic, strong) dispatch_queue_t dispatchQueue;
 
@@ -66,26 +70,51 @@
         _cameraSettings =[[CameraSettings alloc] init];
         _imageWidth = 0;
         _imageHeight = 0;
+        _isCameraInit = NO;
+        _session = [AVCaptureSession new];
+        _dispatchQueue = dispatch_queue_create("MeasureControllerDispatchQueue", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
 
+- (AVCaptureSession *)captureSession {
+    return self.session;
+}
+
+- (void)startPreview {
+    NSLog(@"[MeasurementController][startPreview]");
+    self.previewEnabled = YES;
+    self.state = MeasurementControllerStatePreview;
+    self.previousState = MeasurementControllerStatePreview;
+
+    [self startCamera];
+    [self notifyDelegateDidChangeState:MeasurementControllerStatePreview];
+}
+
+- (void)stopPreview {
+    NSLog(@"[MeasurementController][stopPreview]");
+    self.previewEnabled = NO;
+    if (self.state == MeasurementControllerStatePreview) {
+        [self stopCamera];
+    }
+}
+
 - (void)startMeasurement {
+    NSLog(@"[MeasurementController][startMeasurement]");
     // Reset Values
     [self resetState];
-    
+
     // Init Helpers
     ImageProcessorConfig * config = [self configImageProcessor];
     self.measurement = [[Measurement alloc] initWithConfig:config];
     self.imageProcessor = [[ImageProcessor alloc] initWithConfig:config];
     self.beatListener = [BeatListener new];
-    
+
     //Motion
     [self startMovementDetection];
     [self registerForNotifications];
-    
-    self.dispatchQueue = dispatch_queue_create("MeasureControllerDispatchQueue", DISPATCH_QUEUE_SERIAL);
-    
+
+    self.previewEnabled = NO;
     [self startCamera];
 }
 
@@ -94,15 +123,18 @@
 }
 
 - (void)unloadAll {
-    // NSLog(@"---------Removing observers-------");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
+
+    self.previewEnabled = NO;
     self.motionManager = nil;
     self.measurement = nil;
     self.imageProcessor = nil;
     self.beatListener = nil;
-    
+
     [self stopCamera];
+    self.session = nil;
+    self.camera = nil;
+    self.isCameraInit = NO;
 }
 
 #pragma mark - Private API
@@ -123,6 +155,9 @@
     self.fingerBadCount = self.fingerGoodCount = 0;
     self.calibrationReadyDispatched = self.fingerDetected = NO;
     self.initialFingerDetectionState = YES;
+    self.state = MeasurementControllerStateDetectingFinger;
+    self.previousState = MeasurementControllerStateDetectingFinger;
+    self.event = MeasurementControllerEventInit;
 }
 
 - (void)registerForNotifications {
@@ -150,8 +185,11 @@
     }
 }
 
-- (void)startCamera {
-    self.session = [AVCaptureSession new];
+- (void) initCamera {
+    if (self.isCameraInit) {
+        return;
+    }
+    
     self.camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     
     NSError * error = nil;
@@ -159,16 +197,16 @@
     if (cameraInput) {
         [self.session addInput:cameraInput];
         [self.session setSessionPreset:AVCaptureSessionPresetLow];
-    } else{
+    } else {
         if (self.delegate && [self.delegate respondsToSelector:@selector(measurementControllerDidReceiveError)]) {
             [self.delegate measurementControllerDidReceiveError];
         }
+        return;
     }
+    self.isCameraInit = true;
     
     AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
     AVCaptureInputPort *port = [input.ports objectAtIndex:0];
-    
-    NSLog(@"Register observer to input port format description change");
     
     // Register as an observer for the AVCaptureInputPortFormatDescriptionDidChangeNotification
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -176,26 +214,61 @@
                                                  name:AVCaptureInputPortFormatDescriptionDidChangeNotification
                                                object:port];
     
-    if ([self.camera lockForConfiguration:NULL]) {
-        [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
-        [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
-        [self.camera unlockForConfiguration];
-    }
-    
-    [self.cameraSettings apply:self.camera];
-
     AVCaptureVideoDataOutput * videoOutput = [AVCaptureVideoDataOutput new];
     [videoOutput setSampleBufferDelegate:self queue:self.dispatchQueue];
     videoOutput.videoSettings = @{(id)kCVPixelBufferPixelFormatTypeKey:
                                       @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
     videoOutput.alwaysDiscardsLateVideoFrames=NO;
-    
+
     [self.session addOutput:videoOutput];
-    [self.session startRunning];
-    
-    if (self.flashEnabled && [self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
-        [self.camera lockForConfiguration:nil];
-        self.camera.torchMode = AVCaptureTorchModeOn;
+}
+
+- (void)startCamera {
+    [self initCamera];
+    dispatch_async(self.dispatchQueue, ^{
+        [self.session startRunning];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self configureCamera];
+        });
+    });
+}
+
+- (void)stopCamera {
+    NSLog(@"[MeasurementController][stopCamera]");
+    [self disableTorch];
+
+    if (self.session) {
+        dispatch_async(self.dispatchQueue, ^{
+            [self.session stopRunning];
+        });
+    }
+}
+
+- (void)configureTorch {
+    NSLog(@"[MeasurementController][configureTorch]");
+    if (self.flashEnabled && _state != MeasurementControllerStatePreview) {
+        [self enableTorch];
+    }
+    else {
+        [self disableTorch];
+    }
+}
+
+- (void)enableTorch {
+    NSLog(@"[MeasurementController][enableTorch]");
+    if ([self.camera isTorchModeSupported:AVCaptureTorchModeOn]) {
+        [self.camera lockForConfiguration: nil];
+        [self.camera setTorchMode: AVCaptureTorchModeOn];
+        [self.camera unlockForConfiguration];
+    }
+}
+
+- (void)disableTorch {
+    NSLog(@"[MeasurementController][disableTorch]");
+    if ([self.camera isTorchModeSupported:AVCaptureTorchModeOff]) {
+        [self.camera lockForConfiguration: nil];
+        self.camera.torchMode = AVCaptureTorchModeOff;
         [self.camera unlockForConfiguration];
     }
 }
@@ -217,21 +290,6 @@
     }
 }
 
-- (void)stopCamera {
-    if (self.session) {
-        [self.session stopRunning];
-    }
-    
-    AVCaptureDevice * camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    if (camera) {
-        if (self.flashEnabled && [camera isTorchModeSupported:AVCaptureTorchModeOff]){
-            [camera lockForConfiguration:nil];
-            camera.torchMode = AVCaptureTorchModeOff;
-            [camera unlockForConfiguration];
-        }
-    }
-}
-
 - (void)unlockCameraSettings {
     self.cameraSettings.cameraSettingState = CameraSettingStateCalibrating;
     [self.cameraSettings apply:self.camera];
@@ -240,6 +298,19 @@
 - (void)lockCameraSettings {
     self.cameraSettings.cameraSettingState = CameraSettingStateRecording;
     [self.cameraSettings apply:self.camera];
+}
+
+- (void)configureFrameDuration {
+    [self.camera lockForConfiguration: nil];
+    [self.camera setActiveVideoMinFrameDuration:CMTimeMake(10,300)];
+    [self.camera setActiveVideoMaxFrameDuration:CMTimeMake(10,300)];
+    [self.camera unlockForConfiguration];
+}
+
+- (void)configureCamera {
+    [self.cameraSettings apply:self.camera];
+    [self configureTorch];
+    [self configureFrameDuration];
 }
 
 - (NSString*)getFocusMode {
@@ -333,7 +404,7 @@
 }
 
 - (NSDictionary*)getCameraSettings:(NSInteger)imageWidth imageHeight:(NSInteger)imageHeight {
-    if (self.dimensions == nil) {
+    if (self.dimensions == nil || self.camera == nil) {
         NSDictionary *empty = @{};
         return empty;
     }
@@ -391,6 +462,11 @@
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    // NSLog(@"CaptureOutput state %ld", self.state);
+    if (_state == MeasurementControllerStatePreview) {
+        return;
+    }
+
     NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
     DataPoint *dp = [self.imageProcessor processImageBuffer:sampleBuffer];
     [self.cameraSettings updateAutoSettings:self.camera];
@@ -399,6 +475,10 @@
         NSMutableData *rawData = [self.imageProcessor extractFrame:sampleBuffer imageWidth:_imageWidth imageHeight:_imageHeight];
         NSDictionary* metaData = [self getCameraSettings: _imageWidth imageHeight:_imageHeight];
         [self notifyDelegateOnRawData:rawData metaData:metaData];
+    }
+
+    if (self.measurement == nil || self.session == nil || self.camera == nil) {
+        return;
     }
        
     [self detectFinger:dp];
@@ -650,7 +730,6 @@
         }
     });
 }
-
 - (void)notifyDelegateDidReceiveBrokenAccSensorData {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self.delegate && [self.delegate respondsToSelector:@selector(measurementController:didReceiveMeasurementError:)]) {
@@ -752,3 +831,4 @@
 }
 
 @end
+

@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class Measurement;
 @class CameraInfo;
@@ -35,6 +36,7 @@
 
 @property (readonly) NSUInteger heartRate;
 @property (readonly) CameraInfo* cameraInfo;
+@property (nonatomic, readonly) AVCaptureSession* captureSession;
 
 #pragma mark - Callbacks
 
@@ -53,11 +55,14 @@
 @property (copy) void (^ _Nullable onSampleReady)(double, double);
 @property (copy) void (^ _Nullable onTimeRemaining)(NSUInteger);
 @property (copy) void (^ _Nullable onRawData)(NSData* _Nonnull, NSDictionary<NSString*, NSString*>* _Nonnull);
+@property (copy) void (^ _Nullable onPreviewStarted)(void);
 
 #pragma mark - Methods
 
 -(void)startMeasurement;
 -(void)startRecording;
+-(void)startPreview;
+-(void)stopPreview;
 -(void)stop;
 -(void)updateConfiguration;
 -(void)setCameraSettings:(CameraSettingsInput*) input;

@@ -16,7 +16,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerState) {
     MeasurementControllerStateDetectingPulse,
     MeasurementControllerStateCalibrating,
     MeasurementControllerStateRecording,
-    MeasurementControllerStateFinished
+    MeasurementControllerStateFinished,
+    MeasurementControllerStatePreview
 };
 
 typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
@@ -65,9 +66,12 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property ImageProcessor * imageProcessor;
 @property (readonly) CameraInfo* cameraInfo;
 @property CameraSettings* cameraSettings;
+@property (nonatomic, readonly) AVCaptureSession* captureSession;
 
 - (void)startMeasurement;
 - (void)startRecording;
+- (void)startPreview;
+- (void)stopPreview;
 - (void)unloadAll;
 
 @end
