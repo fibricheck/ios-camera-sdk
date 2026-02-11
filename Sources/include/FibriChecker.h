@@ -53,6 +53,14 @@
 @property (copy) void (^onSampleReady)(double, double);
 @property (copy) void (^onTimeRemaining)(NSUInteger);
 
+#pragma mark - Class Methods
+
+/**
+ * Returns the SDK label information for regulatory compliance.
+ * @return Dictionary containing componentName, udi, ceLabel, manufacturer, releaseDate, and ifu.
+ */
++ (NSDictionary<NSString *, NSString *> *)getLabel;
+
 #pragma mark - Methods
 
 -(void)startMeasurement;

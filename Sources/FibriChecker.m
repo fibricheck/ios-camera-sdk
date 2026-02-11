@@ -5,6 +5,7 @@
 #import "DataPoint.h"
 #import "CameraInfo.h"
 #import "CameraSettings.h"
+#import "LabelInfo.h"
 
 @interface FibriChecker()<MeasurementControllerDelegate>
 
@@ -13,6 +14,12 @@
 @end
 
 @implementation FibriChecker
+
+#pragma mark - Class Methods
+
++ (NSDictionary<NSString *, NSString *> *)getLabel {
+    return [LabelInfo getLabel];
+}
 
 #pragma mark - Public
 
