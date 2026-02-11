@@ -1,9 +1,9 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
+#import "BeatListener.h"
 
 //@class MeasurementDeprecated;
 @class ImageProcessor;
-@class BeatListener;
 @class DataPoint;
 @class Measurement;
 @class CameraInfo;
@@ -30,7 +30,7 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
     MeasurementControllerEventStartRecording
 };
 
-@interface MeasurementController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface MeasurementController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BeatListenerDelegate>
 
 @property (nonatomic, weak) id <MeasurementControllerDelegate> delegate;
 

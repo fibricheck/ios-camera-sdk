@@ -1,7 +1,13 @@
 #import <Foundation/Foundation.h>
 
+@protocol BeatListenerDelegate <NSObject>
+@optional
+-(void)beatListenerDidDetectHeartRate:(NSUInteger)heartRate;
+@end
+
 @interface BeatListener : NSObject
 
+@property (nonatomic, weak) id<BeatListenerDelegate> delegate;
 @property (readonly) NSTimeInterval timeSinceLastPulse;
 
 /*!
