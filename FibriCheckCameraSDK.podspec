@@ -10,5 +10,5 @@ Pod::Spec.new do |s|
     s.public_header_files       = 'Sources/include/*.h'
     s.exclude_files             = 'examples/**'
     s.swift_versions            = ['5.4', '5.5', '5.6', '5.7']
-    s.ios.deployment_target     = '11.0'
+    s.ios.deployment_target     = '12.0'
   end

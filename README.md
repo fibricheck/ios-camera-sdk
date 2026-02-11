@@ -38,8 +38,19 @@ import FibriCheckCameraSDK
 * `NSCameraUsageDescription (Privacy - Camera Usage Description)`
 
 
-The `examples` folder contains two example iOS projects that use the SDK.  
+The `examples` folder contains two example iOS projects that use the SDK.
 For more information on how to integrate FibriCheck in your application, see the [FibriCheck Developer Documentation](https://docs.fibricheck.com/introduction/)
+
+## Running Tests
+
+```bash
+# Run all tests
+xcodebuild test -scheme FibriCheckCameraSDK -destination 'platform=iOS Simulator,name=iPhone 16' 
+
+To list available simulators:
+```bash
+xcrun simctl list devices available
+```
 
 ## Releasing a new version
 To release a new version, follow the [git convention](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
