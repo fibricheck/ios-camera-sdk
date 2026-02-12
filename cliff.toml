@@ -35,6 +35,8 @@ conventional_commits = true
 filter_unconventional = true
 split_commits = false
 commit_parsers = [
+  # Override: bdb8880 was committed as "chore" but should be "feat" - Rookie mistake
+  { sha = "bdb88806487d12a217b3af730a28eed48fd96518", group = "Added" },
   { message = "^feat", group = "Added" },
   { message = "^fix", group = "Fixed" },
   { message = "^doc", group = "Changed" },
