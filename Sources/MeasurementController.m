@@ -77,6 +77,7 @@
     self.measurement = [[Measurement alloc] initWithConfig:config];
     self.imageProcessor = [[ImageProcessor alloc] initWithConfig:config];
     self.beatListener = [BeatListener new];
+    self.beatListener.delegate = self;
 
     //Motion
     [self startMovementDetection];
@@ -316,10 +317,6 @@
             [self.beatListener correlateWithValue:dp.filterValue];
             [self notifyDelegateDidReceiveSample:dp];
             [self.measurement addDataPoint:dp];
-
-            if (_beatListener.isPeakDetected && _beatListener.isValidPulse) {
-                [self notifyDelegateHeartRateUpdated:self.beatListener.heartRate];
-            }
             [self checkMeasurementCompletion];
 
             break;
@@ -582,6 +579,12 @@
 
 - (CameraInfo*) cameraInfo {
     return [CameraInfo fromDevice:self.camera];
+}
+
+#pragma mark - BeatListenerDelegate
+
+- (void)beatListenerDidDetectHeartRate:(NSUInteger)heartRate {
+    [self notifyDelegateHeartRateUpdated:heartRate];
 }
 
 @end

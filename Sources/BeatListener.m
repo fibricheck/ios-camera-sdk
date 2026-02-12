@@ -98,6 +98,9 @@
         if ([self isValidPulse]) {
             [self countPulse];
             [self.heartRateValues addObject:[NSNumber numberWithInt:60000/ [[self.timeValues valueForKeyPath:@"@avg.doubleValue"] doubleValue]]];
+            if (self.delegate && [self.delegate respondsToSelector:@selector(beatListenerDidDetectHeartRate:)]) {
+                [self.delegate beatListenerDidDetectHeartRate:[self heartRate]];
+            }
         }
     }
 
