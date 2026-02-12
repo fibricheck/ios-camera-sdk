@@ -1,0 +1,24 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main, master, dev]
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test -scheme FibriCheckCameraSDK -destination 'platform=iOS Simulator,name=iPhone 16'
+
+      - name: Build SPM example
+        run: |
+          cd examples/FibriCheckExample
+          xcodebuild -scheme FibriCheckExample -target FibriCheckExample -destination 'generic/platform=iOS' CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
