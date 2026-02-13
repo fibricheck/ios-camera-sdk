@@ -52,6 +52,14 @@ class TestSequenceManager: ObservableObject {
                      instruction: "Calibrating camera settings...",
                      expectedEvent: "onCalibrationReady"),
 
+            TestStep(name: .fingerRemoved, title: "Test Finger Removed",
+                     instruction: "Briefly lift your finger off the camera",
+                     expectedEvent: "onFingerRemoved"),
+
+            TestStep(name: .movementDetected, title: "Test Movement Detection",
+                     instruction: "While keeping your finger on the camera, shake the phone gently. This can only be triggered while recording is in progress.",
+                     expectedEvent: "onMovementDetected"),
+
             TestStep(name: .recordingStart, title: "Recording Started",
                      instruction: "Recording has begun!",
                      expectedEvent: "onMeasurementStart"),
