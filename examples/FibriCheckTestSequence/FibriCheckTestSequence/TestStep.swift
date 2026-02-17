@@ -16,6 +16,8 @@ enum StepName: Int, CaseIterable {
     case heartbeat
     case pulse
     case calibration
+    case fingerRemoved
+    case movementDetected
     case recordingStart
     case recording
     case recordingFinished

@@ -145,20 +145,20 @@ class TestSequenceViewModel: ObservableObject {
         }
     }
 
-    private func configureTimeouts(for step: StepName?, on fc: FibriChecker) {
+    private nonisolated func configureTimeouts(for step: StepName?, on fc: FibriChecker) {
         if step == .fingerTimeout {
-            fc.fingerDetectionExpiryTime = 3000
-            fc.pulseDetectionExpiryTime = 10000
+            fc.fingerDetectionExpiryTime = 3
+            fc.pulseDetectionExpiryTime = 10
         } else if step == .pulseTimeout {
-            fc.fingerDetectionExpiryTime = -1    // No timeout - wait for user to place finger
-            fc.pulseDetectionExpiryTime = 1000   // 1 second for quick pulse timeout test
+            fc.fingerDetectionExpiryTime = UInt.max    // No timeout - wait for user to place finger
+            fc.pulseDetectionExpiryTime = 1   // 1 second for quick pulse timeout test
         } else {
-            fc.fingerDetectionExpiryTime = -1    // No timeout - wait for user to place finger
-            fc.pulseDetectionExpiryTime = 30000  // 30 seconds for pulse detection
+            fc.fingerDetectionExpiryTime = UInt.max    // No timeout - wait for user to place finger
+            fc.pulseDetectionExpiryTime = 30  // 30 seconds for pulse detection
         }
     }
 
-    private func handleFingerDetected() {
+    func handleFingerDetected() {
         updateLastEvent("onFingerDetected")
         let step = sequenceManager.currentStepName
 
@@ -176,11 +176,16 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.onEvent("onFingerDetected")
     }
 
-    private func handleFingerRemoved() {
+    func handleFingerRemoved() {
         updateLastEvent("onFingerRemoved")
+
+        if sequenceManager.currentStepName == .fingerRemoved {
+            sequenceManager.onEvent("onFingerRemoved")
+            restartMeasurementForNextStep(skipFingerDetection: false)
+        }
     }
 
-    private func handleFingerDetectionTimeExpired() {
+    func handleFingerDetectionTimeExpired() {
         updateLastEvent("onFingerDetectionTimeExpired")
         let step = sequenceManager.currentStepName
 
@@ -199,7 +204,7 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.failCurrentStep(reason: "Finger detection timed out")
     }
 
-    private func handlePulseDetected() {
+    func handlePulseDetected() {
         updateLastEvent("onPulseDetected")
         let step = sequenceManager.currentStepName
 
@@ -212,7 +217,7 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.onEvent("onPulseDetected")
     }
 
-    private func handlePulseDetectionTimeExpired() {
+    func handlePulseDetectionTimeExpired() {
         updateLastEvent("onPulseDetectionTimeExpired")
         let step = sequenceManager.currentStepName
 
@@ -226,54 +231,68 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.failCurrentStep(reason: "Pulse detection timed out - hold more steady")
     }
 
-    private func handleSampleReady() {
+    func handleSampleReady() {
         if sequenceManager.currentStepName == .sampleReady {
             sequenceManager.onEvent("onSampleReady")
         }
     }
 
-    private func handleHeartBeat(hr: UInt) {
+    func handleHeartBeat(hr: UInt) {
         heartRate = hr
         updateLastEvent("onHeartBeat", extra: "BPM=\(hr)")
         sequenceManager.onEvent("onHeartBeat")
     }
 
-    private func handleCalibrationReady() {
+    func handleCalibrationReady() {
         updateLastEvent("onCalibrationReady")
         sequenceManager.onEvent("onCalibrationReady")
     }
 
-    private func handleMeasurementStart() {
+    func handleMeasurementStart() {
         updateLastEvent("onMeasurementStart")
         sequenceManager.onEvent("onMeasurementStart")
     }
 
-    private func handleTimeRemaining(remaining: UInt) {
+    func handleTimeRemaining(remaining: UInt) {
         timeRemaining = remaining
         updateLastEvent("onTimeRemaining", extra: "\(remaining)s")
         sequenceManager.onEvent("onTimeRemaining")
     }
 
-    private func handleMeasurementFinished() {
+    func handleMeasurementFinished() {
         updateLastEvent("onMeasurementFinished")
         sequenceManager.onEvent("onMeasurementFinished")
     }
 
-    private func handleMeasurementProcessed() {
+    func handleMeasurementProcessed() {
         updateLastEvent("onMeasurementProcessed")
+
+        if sequenceManager.currentStepName == .fingerRemoved {
+            tearDownFibriChecker()
+            sequenceManager.failCurrentStep(reason: "Measurement completed - remove your finger before it finishes")
+            return
+        }
+
         sequenceManager.onEvent("onMeasurementProcessed")
         fibriChecker = nil
         isRunning = false
     }
 
-    private func handleMeasurementError(error: String?) {
+    func handleMeasurementError(error: String?) {
         updateLastEvent("onMeasurementError", extra: error)
         tearDownFibriChecker()
         sequenceManager.failCurrentStep(reason: error ?? "Unknown error")
     }
 
-    private func handleMovementDetected() {
+    func handleMovementDetected() {
         updateLastEvent("onMovementDetected")
+
+        if sequenceManager.currentStepName == .movementDetected {
+            sequenceManager.onEvent("onMovementDetected")
+            restartMeasurementForNextStep(skipFingerDetection: false)
+            return
+        }
+
         tearDownFibriChecker()
         sequenceManager.failCurrentStep(reason: "Movement detected - hold steady")
     }

@@ -46,6 +46,7 @@ For more information on how to integrate FibriCheck in your application, see the
 ```bash
 # Run all tests
 xcodebuild test -scheme FibriCheckCameraSDK -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild test -project examples/FibriCheckTestSequence/FibriCheckTestSequence.xcodeproj -scheme FibriCheckTestSequence -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
 To list available simulators:
@@ -53,11 +54,9 @@ To list available simulators:
 xcrun simctl list devices available
 ```
 
-## Generating Changelog
+## Generate changelog
 
 This project uses [git-cliff](https://git-cliff.org/) to generate changelogs following the [Keep a Changelog](https://keepachangelog.com/) format.
-
-### Generate changelog
 
 ```bash
 # Update CHANGELOG.md
@@ -66,6 +65,13 @@ git-cliff --output CHANGELOG.md
 # Preview unreleased changes
 git-cliff --unreleased
 ```
+
+## Releasing a new version
+To release a new version, follow the [git convention](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+When a new PR to the `main` branch is merged, it will trigger the release process.
+Development releases will be build on PR merged to the `dev` branch
+
+This project uses [git-cliff](https://git-cliff.org/) to generate changelogs following the [Keep a Changelog](https://keepachangelog.com/) format.
 
 ## License
 This SDK is proprietary. See `LICENCE` for more information.
