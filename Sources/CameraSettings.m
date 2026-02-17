@@ -152,8 +152,9 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     if (LOG_CAMERA_SETTINGS) {
         NSLog(@"Cleared all logs");
     }
-    
+
     [self.isoLog removeAllObjects];
+    [self.exposureTimeLog removeAllObjects];
     [self.focusLog removeAllObjects];
     [self.whiteBalanceLog removeAllObjects];
     [self.hdrLog removeAllObjects];
@@ -170,7 +171,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     if (self.exposureMode != CameraModeLocked && exposureModeString != nil) {
         output[@"exposure_mode"] = exposureModeString;
     }
-    if (self.focusMode != CameraModeLocked && exposureModeString != nil) {
+    if (self.focusMode != CameraModeLocked && focusModeString != nil) {
         output[@"focus_mode"] = focusModeString;
     }
     if (self.whiteBalanceMode != WhiteBalanceModeLocked && whiteBalanceModeString != nil) {

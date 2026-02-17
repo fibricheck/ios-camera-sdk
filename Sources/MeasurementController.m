@@ -126,16 +126,20 @@
 - (void)unloadAll {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
-    self.previewEnabled = NO;
-    self.motionManager = nil;
-    self.measurement = nil;
-    self.imageProcessor = nil;
-    self.beatListener = nil;
+    _previewEnabled = NO;
+    [self stopMotionManager];
+    _motionManager = nil;
+    _measurement = nil;
+    _imageProcessor = nil;
+    _beatListener = nil;
 
     [self stopCamera];
-    self.session = nil;
-    self.camera = nil;
-    self.isCameraInit = NO;
+    _camera = nil;
+}
+
+- (void)dealloc {
+    [self unloadAll];
+    _session = nil;
 }
 
 #pragma mark - Private API
@@ -239,10 +243,37 @@
     NSLog(@"[MeasurementController][stopCamera]");
     [self disableTorch];
 
-    if (self.session) {
-        dispatch_async(self.dispatchQueue, ^{
-            [self.session stopRunning];
-        });
+    if (_session) {
+        AVCaptureSession *session = _session;
+        void (^teardown)(void) = ^{
+            [session stopRunning];
+            for (AVCaptureInput *input in [session.inputs copy]) {
+                [session removeInput:input];
+            }
+            for (AVCaptureOutput *output in [session.outputs copy]) {
+                [session removeOutput:output];
+            }
+            _isCameraInit = NO;
+        };
+
+        if (dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL) ==
+            dispatch_queue_get_label(_dispatchQueue)) {
+            teardown();
+        } else {
+            dispatch_sync(_dispatchQueue, teardown);
+        }
+    }
+}
+
+- (void)stopMotionManager {
+    if (self.motionManager.accelerometerActive) {
+        [self.motionManager stopAccelerometerUpdates];
+    }
+    if (self.motionManager.gyroActive) {
+        [self.motionManager stopGyroUpdates];
+    }
+    if (self.motionManager.deviceMotionActive) {
+        [self.motionManager stopDeviceMotionUpdates];
     }
 }
 
@@ -610,8 +641,9 @@
         self.initialFingerDetectionState = NO;
         self.fingerDetected = YES;
         self.event = MeasurementControllerEventFingerDetected;
+        __weak typeof(self) weakSelf = self;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            self.isFingerDetectionGracePeriodActive = NO;
+            weakSelf.isFingerDetectionGracePeriodActive = NO;
         });
         [self notifyDelegateDidReceiveFingerDetected];
     }
