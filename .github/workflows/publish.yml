@@ -29,10 +29,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
       # Run tests and build example app to verify SDK compiles
       - name: Run unit tests
         run: |
