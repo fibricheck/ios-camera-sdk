@@ -7,7 +7,7 @@ static NSString * const UDI_PRODUCT = @"CAMIOS";
 // Regulatory constants
 static NSString * const CE_LABEL = @"CE 1639";
 static NSString * const MANUFACTURER = @"Qompium NV - Kempische Steenweg 303/27 - 3500 Hasselt - Belgium";
-static NSString * const IFU_URL = @"https://pages.fibricheck.com/ifu";
+static NSString * const IFU_URL = @"https://pages.fibricheck.com/document-versions/";
 
 // Cached SDK release info
 static NSDictionary *sdkRelease = nil;
