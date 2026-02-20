@@ -71,5 +71,7 @@ To release a new version, follow the [git convention](https://www.conventionalco
 When a new PR to the `main` branch is merged, it will trigger the release process.
 Development releases will be build on PR merged to the `dev` branch
 
+This project uses [git-cliff](https://git-cliff.org/) to generate changelogs following the [Keep a Changelog](https://keepachangelog.com/) format.
+
 ## License
 This SDK is proprietary. See `LICENCE` for more information.
