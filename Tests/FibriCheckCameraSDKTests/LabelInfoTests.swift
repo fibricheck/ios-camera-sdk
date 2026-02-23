@@ -85,7 +85,7 @@ final class LabelInfoTests: XCTestCase {
 
     func testIFUURLIsCorrect() {
         let label = LabelInfo.getLabel()
-        XCTAssertEqual(label["ifu"], "https://pages.fibricheck.com/ifu")
+        XCTAssertEqual(label["ifu"], "https://pages.fibricheck.com/document-versions/")
     }
 
     func testFibriCheckerGetLabelDelegatesToLabelInfo() {
