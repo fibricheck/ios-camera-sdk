@@ -28,6 +28,13 @@ static NSString* _Nullable cameraSettingModeToString(CameraSettingMode mode) {
     return nil;
 };
 
+static NSString* _Nullable hdrModeToString(HdrMode mode) {
+    if (mode == HdrAuto) return @"auto";
+    if (mode == HdrOn) return @"on";
+    if (mode == HdrOff) return @"off";
+    return nil;
+}
+
 void splitRgbArray(NSMutableArray<NSValue *> *colors,
                    NSMutableArray<NSNumber *> **rValues,
                    NSMutableArray<NSNumber *> **gValues,
@@ -64,9 +71,11 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     manualWhiteBalanceKelvin:(NSUInteger)manualWhiteBalanceKelvin
     focusMode:(CameraSettingMode)focusMode
     manualFocus:(CGFloat)manualFocus
+    hdrMode:(HdrMode)hdrMode
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
-    logFocus:(BOOL)logFocus {
+    logFocus:(BOOL)logFocus
+    logHdr: (BOOL)logHdr {
     
     self = [super init];
     if (self) {
@@ -78,9 +87,11 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         _manualWhiteBalanceKelvin = manualWhiteBalanceKelvin;
         _focusMode = focusMode;
         _manualFocus = manualFocus;
+        _hdrMode = hdrMode;
         _logExposure = logExposure;
         _logWhiteBalance = logWhiteBalance;
         _logFocus = logFocus;
+        _logHdr = logHdr;
     }
     return self;
 }
@@ -100,7 +111,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         self.manualExposureTime = 0;
         
         // Before these settings were added, white balance acted in what is now 'Auto' mode
-        self.whiteBalanceMode = CameraModeAuto;
+        self.whiteBalanceMode = WhiteBalanceModeAuto;
         self.manualWhiteBalanceRgb = (RgbColor) { .r = 0.0f, .g = 0.0f, .b = 0.0f };
         self.manualWhiteBalanceKelvin = 5000;
         
@@ -108,9 +119,12 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         self.focusMode = CameraModeAuto;
         self.manualFocus = 0.0f;
         
+        self.hdrMode = HdrAuto;
+        
         self.logExposure = false;
         self.logWhiteBalance = false;
         self.logFocus = false;
+        self.logHdr = false;
         
         // Extended properties
         _cameraSettingState = CameraSettingStateCalibrating;
@@ -124,6 +138,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         _exposureTimeLog = [NSMutableArray array];
         _whiteBalanceLog = [NSMutableArray array];
         _focusLog = [NSMutableArray array];
+        _hdrLog = [NSMutableArray array];
     }
     
     return self;
@@ -137,6 +152,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     [self.isoLog removeAllObjects];
     [self.focusLog removeAllObjects];
     [self.whiteBalanceLog removeAllObjects];
+    [self.hdrLog removeAllObjects];
 }
 
 - (NSMutableDictionary *)getCameraSettingsOutput {
@@ -145,6 +161,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     NSString* exposureModeString = cameraSettingModeToString(self.exposureMode);
     NSString* whiteBalanceModeString = whiteBalanceModeToString(self.whiteBalanceMode);
     NSString* focusModeString = cameraSettingModeToString(self.focusMode);
+    NSString* hdrModeString = hdrModeToString(self.hdrMode);
     
     if (self.exposureMode != CameraModeLocked && exposureModeString != nil) {
         output[@"exposure_mode"] = exposureModeString;
@@ -154,6 +171,9 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     }
     if (self.whiteBalanceMode != WhiteBalanceModeLocked && whiteBalanceModeString != nil) {
         output[@"white_balance_mode"] = whiteBalanceModeString;
+    }
+    if (self.hdrMode != HdrAuto && hdrModeString != nil) {
+        output[@"hdr_mode"] = hdrModeString;
     }
     
     if (self.exposureMode == CameraModeAuto && self.isoLog.count > 0) {
@@ -173,6 +193,10 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
             @"b": b
         };
     }
+    if (self.hdrMode == HdrAuto && _hdrLog.count > 0) {
+        output[@"hdr"] = _hdrLog;
+    }
+
     
     return output;
 }
@@ -197,6 +221,11 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         };
     }
     
+    if (self.hdrMode != HdrAuto) {
+        BOOL isOn = self.hdrMode == HdrOn;
+        technicalDetails[@"camera_hdr"] = [NSNumber numberWithBool: isOn];
+    }
+    
     return technicalDetails;
 }
 
@@ -209,9 +238,11 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     self.manualWhiteBalanceKelvin = input.manualWhiteBalanceKelvin;
     self.focusMode = input.focusMode;
     self.manualFocus = input.manualFocus;
+    self.hdrMode = input.hdrMode;
     self.logExposure = input.logExposure;
     self.logWhiteBalance = input.logWhiteBalance;
     self.logFocus = input.logFocus;
+    self.logHdr = input.logHdr;
 }
 
 - (void)updateAutoSettings:(nonnull AVCaptureDevice *)camera {
@@ -283,13 +314,23 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
             NSLog(@"Added entry to focus log");
         }
     }
+    
+    if (self.logHdr && self.hdrMode == HdrAuto) {
+        [self.hdrLog addObject: [NSNumber numberWithBool:camera.isVideoHDREnabled]];
+        if (LOG_CAMERA_SETTINGS) {
+            NSLog(@"Added entry to hdr log");
+        }
+    }
 }
 
 - (void)apply:(AVCaptureDevice *)camera {
     [camera lockForConfiguration:nil];
+    
     [self applyExposure:camera];
     [self applyWhiteBalance:camera];
     [self applyFocus:camera];
+    [self applyHdr:camera];
+    
     [camera unlockForConfiguration];
 }
 
@@ -360,6 +401,13 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     }
     else {
         NSLog(@"Warning: Tried to configure manual focus but it is not supported on this system");
+    }
+}
+
+- (void) applyHdr:(AVCaptureDevice*)camera {
+    [camera setAutomaticallyAdjustsVideoHDREnabled:self.hdrMode == HdrAuto];
+    if (self.hdrMode != HdrAuto) {
+        [camera setVideoHDREnabled:self.hdrMode == HdrOn];
     }
 }
 

@@ -225,6 +225,28 @@ struct ContentView: View {
                     }
                     fc.onPulseDetected = onPulseDetected
                     
+                    fc.setCameraSettings(
+                        CameraSettings(
+                            values: CameraSettingMode.modeLocked,
+                            manualIso: 100,
+                            manualExposureTime: 160_000,
+                            
+                            whiteBalanceMode: WhiteBalanceMode.auto,
+                            manualWhiteBalanceRgb: RgbColor(r: 1.0, g: 1.0, b: 1.0),
+                            manualWhiteBalanceKelvin: 5000,
+                            
+                            focus: CameraSettingMode.modeAuto,
+                            manualFocus: 0.0,
+                            
+                            hdrMode: HdrMode.off,
+                            
+                            logExposure: false,
+                            logWhiteBalance: false,
+                            logFocus: false,
+                            logHdr: true
+                        )
+                    )
+                    
                     
                     fc.startMeasurement()
                     

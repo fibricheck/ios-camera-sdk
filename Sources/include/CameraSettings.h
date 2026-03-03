@@ -30,6 +30,12 @@ typedef NS_ENUM(NSUInteger, WhiteBalanceMode) {
     WhiteBalanceModeManualKelvin
 };
 
+typedef NS_ENUM(NSUInteger, HdrMode) {
+    HdrOn,
+    HdrOff,
+    HdrAuto
+};
+
 typedef NS_ENUM(NSUInteger, CameraSettingState) {
     CameraSettingStateCalibrating,
     CameraSettingStateRecording
@@ -48,9 +54,12 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 @property (nonatomic, assign) CameraSettingMode focusMode;
 @property (nonatomic, assign) CGFloat manualFocus;
 
+@property (nonatomic, assign) HdrMode hdrMode;
+
 @property (nonatomic, assign) BOOL logExposure;
 @property (nonatomic, assign) BOOL logWhiteBalance;
 @property (nonatomic, assign) BOOL logFocus;
+@property (nonatomic, assign) BOOL logHdr;
 
 - (instancetype)initWithValues:(CameraSettingMode)exposureMode
     manualIso:(NSUInteger)manualIso
@@ -63,9 +72,12 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
     focusMode:(CameraSettingMode)focusMode
     manualFocus:(CGFloat)manualFocus
 
+    hdrMode:(HdrMode)hdrMode
+
     logExposure:(BOOL)logExposure
     logWhiteBalance:(BOOL)logWhiteBalance
-    logFocus:(BOOL)logFocus;
+    logFocus:(BOOL)logFocus
+    logHdr:(BOOL)logHdr;
 
 @end
 
@@ -81,6 +93,7 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 @property (nonatomic, strong) NSMutableArray<NSNumber*>* exposureTimeLog;
 @property (nonatomic, strong) NSMutableArray<NSValue*>* whiteBalanceLog;
 @property (nonatomic, strong) NSMutableArray<NSNumber*>* focusLog;
+@property (nonatomic, strong) NSMutableArray<NSNumber*>* hdrLog;
 
 @property (nonatomic, readonly) NSUInteger iso;
 @property (nonatomic, readonly) NSUInteger exposureTime;
