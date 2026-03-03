@@ -11,13 +11,16 @@
 #endif
 
 #import "BeatListener.h"
+#import "CameraInfo.h"
+#import "CameraSettings.h"
 #import "DataPoint.h"
+#import "FCFilter.h"
 #import "FCSGFilter.h"
 #import "FibriChecker.h"
 #import "FibriCheckerComponent.h"
-#import "FCFilter.h"
 #import "ImageProcessor.h"
 #import "ImageProcessorConfig.h"
+#import "LabelInfo.h"
 #import "Measurement.h"
 #import "MeasurementController.h"
 #import "MotionData.h"
