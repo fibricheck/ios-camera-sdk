@@ -159,9 +159,13 @@ struct ContentView: View {
                                         focus: CameraSettingMode.modeLocked,
                                         manualFocus: 0,
                                         
+                                        hdrMode: HdrMode.auto,
+                                        
                                         logExposure: true,
                                         logWhiteBalance: true,
-                                        logFocus: true
+                                        logFocus: true,
+                                        logHdr: true
+                                        
                                     )
                                 )
 

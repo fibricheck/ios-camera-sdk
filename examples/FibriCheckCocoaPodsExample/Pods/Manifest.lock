@@ -1,5 +1,5 @@
 PODS:
-  - FibriCheckCameraSDK (0.1.3)
+  - FibriCheckCameraSDK (1.0.2)
 
 DEPENDENCIES:
   - FibriCheckCameraSDK (from `../../`)
@@ -9,8 +9,8 @@ EXTERNAL SOURCES:
     :path: "../../"
 
 SPEC CHECKSUMS:
-  FibriCheckCameraSDK: 76556c7e5ef81a662ec568477fc0973c15afe1d8
+  FibriCheckCameraSDK: e1794652f42cc2ae51aaffa4c2b117df556961f6
 
 PODFILE CHECKSUM: b568bbfa3f163184337ec545ff899f7e72f08b41
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.15.2
