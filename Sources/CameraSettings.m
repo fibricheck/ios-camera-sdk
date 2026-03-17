@@ -12,6 +12,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 #define LOG_CAMERA_SETTINGS false
+#define LOG_ACCURARCY 0.001
 
 static NSString* _Nullable whiteBalanceModeToString(WhiteBalanceMode mode) {
     if (mode == WhiteBalanceModeAuto) return @"auto";
@@ -33,31 +34,6 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     if (mode == HdrOn) return @"on";
     if (mode == HdrOff) return @"off";
     return nil;
-}
-
-void splitRgbArray(NSMutableArray<NSValue *> *colors,
-                   NSMutableArray<NSNumber *> **rValues,
-                   NSMutableArray<NSNumber *> **gValues,
-                   NSMutableArray<NSNumber *> **bValues) {
-
-    // Create the arrays if they don't exist
-    if (!*rValues) *rValues = [NSMutableArray array];
-    if (!*gValues) *gValues = [NSMutableArray array];
-    if (!*bValues) *bValues = [NSMutableArray array];
-
-    // Clear existing contents
-    [*rValues removeAllObjects];
-    [*gValues removeAllObjects];
-    [*bValues removeAllObjects];
-
-    for (NSValue *value in colors) {
-        RgbColor color;
-        [value getValue:&color];
-
-        [*rValues addObject:@(color.r)];
-        [*gValues addObject:@(color.g)];
-        [*bValues addObject:@(color.b)];
-    }
 }
 
 @implementation CameraSettingsInput
@@ -98,7 +74,14 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
 
 @end
 
-@implementation CameraSettings
+@implementation CameraSettings {
+    NSUInteger _frameIndex;
+    NSUInteger _lastLoggedIso;
+    NSUInteger _lastLoggedExposureTime;
+    RgbColor _lastLoggedWhiteBalance;
+    CGFloat _lastLoggedFocus;
+    NSInteger _lastLoggedHdr;
+}
 
 - (instancetype)init {
     self = [super init];
@@ -139,6 +122,13 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         _whiteBalanceLog = [NSMutableArray array];
         _focusLog = [NSMutableArray array];
         _hdrLog = [NSMutableArray array];
+
+        _frameIndex = 0;
+        _lastLoggedIso = -1;
+        _lastLoggedExposureTime = -1;
+        _lastLoggedWhiteBalance = (RgbColor){ .r = -1.0f, .g = -1.0f, .b = -1.0f };
+        _lastLoggedFocus = -1.0f;
+        _lastLoggedHdr = -1;
     }
     
     return self;
@@ -148,11 +138,19 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
     if (LOG_CAMERA_SETTINGS) {
         NSLog(@"Cleared all logs");
     }
-    
+
     [self.isoLog removeAllObjects];
+    [self.exposureTimeLog removeAllObjects];
     [self.focusLog removeAllObjects];
     [self.whiteBalanceLog removeAllObjects];
     [self.hdrLog removeAllObjects];
+
+    _frameIndex = 0;
+    _lastLoggedIso = -1;
+    _lastLoggedExposureTime = -1;
+    _lastLoggedWhiteBalance = (RgbColor){ .r = -1.0f, .g = -1.0f, .b = -1.0f };
+    _lastLoggedFocus = -1.0f;
+    _lastLoggedHdr = -1;
 }
 
 - (NSMutableDictionary *)getCameraSettingsOutput {
@@ -184,14 +182,7 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         output[@"focus"] = self.focusLog;
     }
     if (self.whiteBalanceMode == WhiteBalanceModeAuto && self.whiteBalanceLog.count > 0) {
-        NSMutableArray<NSNumber *> *r, *g, *b;
-        splitRgbArray(self.whiteBalanceLog, &r, &g, &b);
-        
-        output[@"white_balance"] = @{
-            @"r": r,
-            @"g": g,
-            @"b": b
-        };
+        output[@"white_balance"] = self.whiteBalanceLog;
     }
     if (self.hdrMode == HdrAuto && _hdrLog.count > 0) {
         output[@"hdr"] = _hdrLog;
@@ -221,9 +212,8 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         };
     }
     
-    if (self.hdrMode != HdrAuto) {
-        BOOL isOn = self.hdrMode == HdrOn;
-        technicalDetails[@"camera_hdr"] = [NSNumber numberWithBool: isOn];
+    if (self.hdrStatus != nil) {
+        technicalDetails[@"camera_hdr"] = [NSString stringWithString:self.hdrStatus];
     }
     
     return technicalDetails;
@@ -290,36 +280,70 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
         return;
     }
     
+    NSUInteger currentFrame = _frameIndex++;
+
     if (self.logExposure && self.exposureMode == CameraModeAuto) {
-        [self.isoLog addObject: [NSNumber numberWithUnsignedInteger:_autoIso]];
-        [self.exposureTimeLog addObject: [NSNumber numberWithUnsignedInteger:_autoExposureTime]];
-        
-        if (LOG_CAMERA_SETTINGS) {
-            NSLog(@"Added entry to exposure log");
+        if (_autoIso != _lastLoggedIso || _autoExposureTime != _lastLoggedExposureTime) {
+            [self.isoLog addObject: @[@(_autoIso), @(currentFrame)]];
+            [self.exposureTimeLog addObject: @[@(_autoExposureTime), @(currentFrame)]];
+            _lastLoggedIso = _autoIso;
+            _lastLoggedExposureTime = _autoExposureTime;
+
+            if (LOG_CAMERA_SETTINGS) {
+                NSLog(@"Added entry to exposure log at frame %lu", currentFrame);
+            }
         }
     }
-    
+
     if (self.logWhiteBalance && self.whiteBalanceMode == WhiteBalanceModeAuto) {
-        [self.whiteBalanceLog addObject: [NSValue valueWithBytes:&_autoWhiteBalance objCType:@encode(RgbColor)]];
-        
-        if (LOG_CAMERA_SETTINGS) {
-            NSLog(@"Added entry to white balance log");
+        RgbColor wb = _autoWhiteBalance;
+        if (fabs(wb.r - _lastLoggedWhiteBalance.r) > LOG_ACCURARCY || fabs(wb.g - _lastLoggedWhiteBalance.g) > LOG_ACCURARCY || fabs(wb.b - _lastLoggedWhiteBalance.b) > LOG_ACCURARCY) {
+            [self.whiteBalanceLog addObject: @[@(wb.r), @(wb.g), @(wb.b), @(currentFrame)]];
+            _lastLoggedWhiteBalance = wb;
+
+            if (LOG_CAMERA_SETTINGS) {
+                NSLog(@"Added entry to white balance log at frame %lu", currentFrame);
+            }
         }
     }
-    
+
     if (self.logFocus && self.focusMode == CameraModeAuto) {
-        [self.focusLog addObject: [NSNumber numberWithFloat:_autoFocus]];
-        
-        if (LOG_CAMERA_SETTINGS) {
-            NSLog(@"Added entry to focus log");
+        if (fabs(_autoFocus - _lastLoggedFocus) > LOG_ACCURARCY) {
+            [self.focusLog addObject: @[@(_autoFocus), @(currentFrame)]];
+            _lastLoggedFocus = _autoFocus;
+
+            if (LOG_CAMERA_SETTINGS) {
+                NSLog(@"Added entry to focus log at frame %lu", currentFrame);
+            }
+        }
+    }
+
+    if (self.logHdr && self.hdrMode == HdrAuto) {
+        NSInteger hdrValue = camera.isVideoHDREnabled ? 1 : 0;
+        if (hdrValue != _lastLoggedHdr) {
+            [self.hdrLog addObject: @[@(hdrValue), @(currentFrame)]];
+            _lastLoggedHdr = hdrValue;
+
+            if (LOG_CAMERA_SETTINGS) {
+                NSLog(@"Added entry to hdr log at frame %lu", currentFrame);
+            }
         }
     }
     
-    if (self.logHdr && self.hdrMode == HdrAuto) {
-        [self.hdrLog addObject: [NSNumber numberWithBool:camera.isVideoHDREnabled]];
-        if (LOG_CAMERA_SETTINGS) {
-            NSLog(@"Added entry to hdr log");
-        }
+    if (!camera.activeFormat.isVideoHDRSupported) {
+        self.hdrStatus = @"hdr-unsupported";
+    }
+    else if (camera.automaticallyAdjustsVideoHDREnabled && camera.videoHDREnabled) {
+        self.hdrStatus = @"hdr-auto-on";
+    }
+    else if (camera.automaticallyAdjustsVideoHDREnabled && !camera.videoHDREnabled) {
+        self.hdrStatus = @"hdr-auto-off";
+    }
+    else if (!camera.automaticallyAdjustsVideoHDREnabled && camera.videoHDREnabled) {
+        self.hdrStatus = @"hdr-manual-on";
+    }
+    else if (!camera.automaticallyAdjustsVideoHDREnabled && !camera.videoHDREnabled) {
+        self.hdrStatus = @"hdr-manual-off";
     }
 }
 
@@ -405,6 +429,10 @@ void splitRgbArray(NSMutableArray<NSValue *> *colors,
 }
 
 - (void) applyHdr:(AVCaptureDevice*)camera {
+    if (!camera.activeFormat.isVideoHDRSupported) {
+        return;
+    }
+    
     [camera setAutomaticallyAdjustsVideoHDREnabled:self.hdrMode == HdrAuto];
     if (self.hdrMode != HdrAuto) {
         [camera setVideoHDREnabled:self.hdrMode == HdrOn];

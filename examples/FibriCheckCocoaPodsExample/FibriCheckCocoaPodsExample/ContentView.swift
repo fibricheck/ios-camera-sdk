@@ -111,6 +111,16 @@ struct ContentView: View {
         addToLogString(txt: "Time Vector Length" + String(fcParsedResult.time.count))
         addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
         addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))
+
+        if let data = try? JSONSerialization.data(withJSONObject: measurement.technical_details, options: .prettyPrinted),
+           let jsonString = String(data: data, encoding: .utf8) {
+            print(jsonString)
+        }
+        
+        if let data = try? JSONSerialization.data(withJSONObject: measurement.camera_settings, options: .prettyPrinted),
+           let jsonString = String(data: data, encoding: .utf8) {
+            print(jsonString)
+        }
         
         return true
         
@@ -131,7 +141,7 @@ struct ContentView: View {
                     var threadDone = false
                     let fc = FibriChecker()
                     
-                    fc.sampleTime = 10;
+                    fc.sampleTime = 30;
                     fc.pulseDetectionExpiryTime = 15000;
 //                    fc.fingerDetectionExpiryTime = 500000;
                     
@@ -240,9 +250,9 @@ struct ContentView: View {
                             
                             hdrMode: HdrMode.off,
                             
-                            logExposure: false,
-                            logWhiteBalance: false,
-                            logFocus: false,
+                            logExposure: true,
+                            logWhiteBalance: true,
+                            logFocus: true,
                             logHdr: true
                         )
                     )
