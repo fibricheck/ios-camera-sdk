@@ -2,7 +2,7 @@
 //  CameraSettings.m
 //  FibriCheckCameraSDK
 //
-//  Created by Brent Berghmans on 11/12/2025.
+//  Created by Estelle Berghmans on 11/12/2025.
 //
 
 #import "CameraSettings.h"
@@ -102,11 +102,11 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
         self.focusMode = CameraModeAuto;
         self.manualFocus = 0.0f;
         
-        self.hdrMode = HdrAuto;
+        self.hdrMode = HdrOff;
         
         self.logExposure = false;
-        self.logWhiteBalance = false;
-        self.logFocus = false;
+        self.logWhiteBalance = true;
+        self.logFocus = true;
         self.logHdr = false;
         
         // Extended properties
