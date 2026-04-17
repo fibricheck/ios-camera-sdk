@@ -22,6 +22,7 @@ enum StepName: Int, CaseIterable {
     case recording
     case recordingFinished
     case processing
+    case measurementValidation
 }
 
 struct TestStep: Identifiable {

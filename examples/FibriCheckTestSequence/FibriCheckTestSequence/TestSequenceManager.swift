@@ -69,12 +69,16 @@ class TestSequenceManager: ObservableObject {
                      expectedEvent: "onTimeRemaining"),
 
             TestStep(name: .recordingFinished, title: "Recording Finished",
-                     instruction: "Recording complete!",
+                     instruction: "Waiting for recording to finish...",
                      expectedEvent: "onMeasurementFinished"),
 
             TestStep(name: .processing, title: "Processing",
                      instruction: "Processing measurement data...",
-                     expectedEvent: "onMeasurementProcessed")
+                     expectedEvent: "onMeasurementProcessed"),
+
+            TestStep(name: .measurementValidation, title: "Validate Measurement",
+                     instruction: "Validating measurement output contains all required fields...",
+                     expectedEvent: "onMeasurementValidated")
         ]
     }
 

@@ -118,7 +118,8 @@ final class TestSequenceManagerTests: XCTestCase {
             "onMeasurementStart",
             "onTimeRemaining",
             "onMeasurementFinished",
-            "onMeasurementProcessed"
+            "onMeasurementProcessed",
+            "onMeasurementValidated"
         ]
 
         manager.start()
@@ -147,6 +148,7 @@ final class TestSequenceManagerTests: XCTestCase {
             ("onMeasurementStart", .recording),
             ("onTimeRemaining", .recordingFinished),
             ("onMeasurementFinished", .processing),
+            ("onMeasurementProcessed", .measurementValidation),
         ]
 
         manager.start()
@@ -158,7 +160,7 @@ final class TestSequenceManagerTests: XCTestCase {
             XCTAssertEqual(manager.currentStep?.status, .current)
         }
 
-        manager.onEvent("onMeasurementProcessed")
+        manager.onEvent("onMeasurementValidated")
         XCTAssertTrue(manager.isCompleted)
     }
 

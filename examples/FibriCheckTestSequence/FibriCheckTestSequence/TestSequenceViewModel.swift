@@ -121,8 +121,8 @@ class TestSequenceViewModel: ObservableObject {
             fc.onMeasurementFinished = {
                 DispatchQueue.main.async { self?.handleMeasurementFinished() }
             }
-            fc.onMeasurementProcessed = { _ in
-                DispatchQueue.main.async { self?.handleMeasurementProcessed() }
+            fc.onMeasurementProcessed = { measurement in
+                DispatchQueue.main.async { self?.handleMeasurementProcessed(measurement: measurement) }
             }
             fc.onMeasurementError = { error in
                 DispatchQueue.main.async { self?.handleMeasurementError(error: error) }
@@ -264,7 +264,7 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.onEvent("onMeasurementFinished")
     }
 
-    func handleMeasurementProcessed() {
+    func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement?) {
         updateLastEvent("onMeasurementProcessed")
 
         if sequenceManager.currentStepName == .fingerRemoved {
@@ -276,6 +276,35 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.onEvent("onMeasurementProcessed")
         fibriChecker = nil
         isRunning = false
+
+        if let error = validateMeasurement(measurement) {
+            sequenceManager.failCurrentStep(reason: error)
+        } else {
+            sequenceManager.onEvent("onMeasurementValidated")
+        }
+    }
+
+    private func validateMeasurement(_ measurement: FibriCheckCameraSDK.Measurement?) -> String? {
+        guard let measurement = measurement else { return "Measurement is nil" }
+        guard let dict = measurement.mapToDictionary() as? [String: Any] else { return "Could not map measurement to dictionary" }
+
+        // Check top-level arrays are present and non-empty
+        guard let quadrants = dict["quadrants"] as? [[Any]], !quadrants.isEmpty else { return "quadrants is missing or empty" }
+        guard let time = dict["time"] as? [Any], !time.isEmpty else { return "time is missing or empty" }
+
+        // Check scalar fields
+        if dict["measurement_timestamp"] == nil { return "measurement_timestamp is missing" }
+        if dict["heartrate"] == nil { return "heartrate is missing" }
+
+        // Check technical_details and its subkeys
+        guard let technicalDetails = dict["technical_details"] as? [String: Any] else { return "technical_details is missing" }
+        guard let cameraHdr = technicalDetails["camera_hdr"] as? String, !cameraHdr.isEmpty else { return "technical_details.camera_hdr is missing or empty" }
+
+        // Check camera_settings and its subkeys
+        guard let cameraSettings = dict["camera_settings"] as? [String: Any] else { return "camera_settings is missing" }
+        guard let hdrProfile = cameraSettings["hdr_profile"] as? String, !hdrProfile.isEmpty else { return "camera_settings.hdr_profile is missing or empty" }
+
+        return nil
     }
 
     func handleMeasurementError(error: String?) {
