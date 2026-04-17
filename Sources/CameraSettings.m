@@ -183,13 +183,13 @@ static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace
     if (self.internal_exposureMode != CameraModeLocked && exposureModeString != nil) {
         output[@"exposure_mode"] = exposureModeString;
     }
-    if (self.internal_focusMode != CameraModeLocked && exposureModeString != nil) {
+    if (focusModeString != nil) {
         output[@"focus_mode"] = focusModeString;
     }
     if (self.internal_whiteBalanceMode != WhiteBalanceModeLocked && whiteBalanceModeString != nil) {
         output[@"white_balance_mode"] = whiteBalanceModeString;
     }
-    if (self.internal_hdrMode != HdrAuto && hdrModeString != nil) {
+    if (hdrModeString != nil) {
         output[@"hdr_mode"] = hdrModeString;
     }
 

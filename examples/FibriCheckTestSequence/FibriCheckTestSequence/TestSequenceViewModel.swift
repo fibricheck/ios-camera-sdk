@@ -264,7 +264,7 @@ class TestSequenceViewModel: ObservableObject {
         sequenceManager.onEvent("onMeasurementFinished")
     }
 
-    func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement?) {
+    func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement? = nil) {
         updateLastEvent("onMeasurementProcessed")
 
         if sequenceManager.currentStepName == .fingerRemoved {

@@ -77,7 +77,8 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
     internal_logExposure:(BOOL)internal_logExposure
     internal_logWhiteBalance:(BOOL)internal_logWhiteBalance
     internal_logFocus:(BOOL)internal_logFocus
-    internal_logHdr:(BOOL)internal_logHdr;
+    internal_logHdr:(BOOL)internal_logHdr
+NS_SWIFT_NAME(init(values:internal_manualIso:internal_manualExposureTime:internal_whiteBalanceMode:internal_manualWhiteBalanceRgb:internal_manualWhiteBalanceKelvin:internal_focusMode:internal_manualFocus:internal_hdrMode:internal_logExposure:internal_logWhiteBalance:internal_logFocus:internal_logHdr:));
 
 @end
 
