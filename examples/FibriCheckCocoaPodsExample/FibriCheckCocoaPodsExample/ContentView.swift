@@ -238,22 +238,22 @@ struct ContentView: View {
                     fc.setCameraSettings(
                         CameraSettings(
                             values: CameraSettingMode.modeLocked,
-                            manualIso: 100,
-                            manualExposureTime: 160_000,
-                            
-                            whiteBalanceMode: WhiteBalanceMode.auto,
-                            manualWhiteBalanceRgb: RgbColor(r: 1.0, g: 1.0, b: 1.0),
-                            manualWhiteBalanceKelvin: 5000,
-                            
-                            focus: CameraSettingMode.modeAuto,
-                            manualFocus: 0.0,
-                            
-                            hdrMode: HdrMode.off,
-                            
-                            logExposure: true,
-                            logWhiteBalance: true,
-                            logFocus: true,
-                            logHdr: true
+                            internal_manualIso: 100,
+                            internal_manualExposureTime: 160_000,
+
+                            internal_whiteBalanceMode: WhiteBalanceMode.auto,
+                            internal_manualWhiteBalanceRgb: RgbColor(r: 1.0, g: 1.0, b: 1.0),
+                            internal_manualWhiteBalanceKelvin: 5000,
+
+                            internal_focusMode: CameraSettingMode.modeAuto,
+                            internal_manualFocus: 0.0,
+
+                            internal_hdrMode: HdrMode.off,
+
+                            internal_logExposure: true,
+                            internal_logWhiteBalance: true,
+                            internal_logFocus: true,
+                            internal_logHdr: true
                         )
                     )
                     

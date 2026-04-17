@@ -149,23 +149,22 @@ struct ContentView: View {
                                 fc.setCameraSettings(
                                     CameraSettingsInput(
                                         values: CameraSettingMode.modeLocked,
-                                        manualIso: 0,
-                                        manualExposureTime: 0,
-                                        
-                                        whiteBalanceMode: WhiteBalanceMode.locked,
-                                        manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
-                                        manualWhiteBalanceKelvin: 5000,
-                                        
-                                        focus: CameraSettingMode.modeLocked,
-                                        manualFocus: 0,
-                                        
-                                        hdrMode: HdrMode.auto,
-                                        
-                                        logExposure: true,
-                                        logWhiteBalance: true,
-                                        logFocus: true,
-                                        logHdr: true
-                                        
+                                        internal_manualIso: 0,
+                                        internal_manualExposureTime: 0,
+
+                                        internal_whiteBalanceMode: WhiteBalanceMode.locked,
+                                        internal_manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
+                                        internal_manualWhiteBalanceKelvin: 5000,
+
+                                        internal_focusMode: CameraSettingMode.modeLocked,
+                                        internal_manualFocus: 0,
+
+                                        internal_hdrMode: HdrMode.auto,
+
+                                        internal_logExposure: true,
+                                        internal_logWhiteBalance: true,
+                                        internal_logFocus: true,
+                                        internal_logHdr: true
                                     )
                                 )
 
