@@ -12,8 +12,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 #define LOG_CAMERA_SETTINGS false
-#define LOG_ACCURARCY 0.001
-
+#define LOG_ACCURACY 0.001
+    
 static NSString* _Nullable whiteBalanceModeToString(WhiteBalanceMode mode) {
     if (mode == WhiteBalanceModeAuto) return @"auto";
     if (mode == WhiteBalanceModeLocked) return @"locked";
@@ -34,6 +34,22 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     if (mode == HdrOn) return @"on";
     if (mode == HdrOff) return @"off";
     return nil;
+}
+
+static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace) {
+    switch (colorSpace) {
+        case AVCaptureColorSpace_sRGB:
+            return @"sRGB";
+        case AVCaptureColorSpace_P3_D65:
+            return @"P3-D65";
+        case AVCaptureColorSpace_AppleLog:
+            return @"AppleLog";
+        case AVCaptureColorSpace_AppleLog2:
+            return @"AppleLog2";
+        case AVCaptureColorSpace_HLG_BT2020:
+            return @"HLG-BT2020";
+        default: return @"unknown";
+    }
 }
 
 @implementation CameraSettingsInput
@@ -151,6 +167,7 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     _lastLoggedWhiteBalance = (RgbColor){ .r = -1.0f, .g = -1.0f, .b = -1.0f };
     _lastLoggedFocus = -1.0f;
     _lastLoggedHdr = -1;
+    _hdrProfile = nil;
 }
 
 - (NSMutableDictionary *)getCameraSettingsOutput {
@@ -186,6 +203,9 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     }
     if (self.hdrMode == HdrAuto && _hdrLog.count > 0) {
         output[@"hdr"] = _hdrLog;
+    }
+    if (self.hdrProfile != nil) {
+        output[@"hdr_profile"] = self.hdrProfile;
     }
 
     
@@ -297,7 +317,7 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
 
     if (self.logWhiteBalance && self.whiteBalanceMode == WhiteBalanceModeAuto) {
         RgbColor wb = _autoWhiteBalance;
-        if (fabs(wb.r - _lastLoggedWhiteBalance.r) > LOG_ACCURARCY || fabs(wb.g - _lastLoggedWhiteBalance.g) > LOG_ACCURARCY || fabs(wb.b - _lastLoggedWhiteBalance.b) > LOG_ACCURARCY) {
+        if (fabs(wb.r - _lastLoggedWhiteBalance.r) > LOG_ACCURACY || fabs(wb.g - _lastLoggedWhiteBalance.g) > LOG_ACCURACY || fabs(wb.b - _lastLoggedWhiteBalance.b) > LOG_ACCURACY) {
             [self.whiteBalanceLog addObject: @[@(wb.r), @(wb.g), @(wb.b), @(currentFrame)]];
             _lastLoggedWhiteBalance = wb;
 
@@ -308,7 +328,7 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     }
 
     if (self.logFocus && self.focusMode == CameraModeAuto) {
-        if (fabs(_autoFocus - _lastLoggedFocus) > LOG_ACCURARCY) {
+        if (fabs(_autoFocus - _lastLoggedFocus) > LOG_ACCURACY) {
             [self.focusLog addObject: @[@(_autoFocus), @(currentFrame)]];
             _lastLoggedFocus = _autoFocus;
 
@@ -332,18 +352,23 @@ static NSString* _Nullable hdrModeToString(HdrMode mode) {
     
     if (!camera.activeFormat.isVideoHDRSupported) {
         self.hdrStatus = @"hdr-unsupported";
+        self.hdrProfile = nil;
     }
     else if (camera.automaticallyAdjustsVideoHDREnabled && camera.videoHDREnabled) {
         self.hdrStatus = @"hdr-auto-on";
+        self.hdrProfile = colorSpaceToHdrProfile(camera.activeColorSpace);
     }
     else if (camera.automaticallyAdjustsVideoHDREnabled && !camera.videoHDREnabled) {
         self.hdrStatus = @"hdr-auto-off";
+        self.hdrProfile = colorSpaceToHdrProfile(camera.activeColorSpace);
     }
     else if (!camera.automaticallyAdjustsVideoHDREnabled && camera.videoHDREnabled) {
         self.hdrStatus = @"hdr-manual-on";
+        self.hdrProfile = colorSpaceToHdrProfile(camera.activeColorSpace);
     }
     else if (!camera.automaticallyAdjustsVideoHDREnabled && !camera.videoHDREnabled) {
         self.hdrStatus = @"hdr-manual-off";
+        self.hdrProfile = colorSpaceToHdrProfile(camera.activeColorSpace);
     }
 }
 

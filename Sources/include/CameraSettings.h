@@ -89,6 +89,7 @@ typedef NS_ENUM(NSUInteger, CameraSettingState) {
 @property (nonatomic, assign) RgbColor autoWhiteBalance;
 @property (nonatomic, assign) CGFloat autoFocus;
 @property (nonatomic, assign) NSString* hdrStatus;
+@property (nonatomic, strong, nullable) NSString* hdrProfile;
 
 @property (nonatomic, strong) NSMutableArray<NSArray*>* isoLog;
 @property (nonatomic, strong) NSMutableArray<NSArray*>* exposureTimeLog;
