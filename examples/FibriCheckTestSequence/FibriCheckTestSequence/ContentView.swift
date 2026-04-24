@@ -20,11 +20,16 @@ struct ContentView: View {
             .alert("Test Sequence Completed!", isPresented: $viewModel.showSuccessAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("All \(viewModel.sequenceManager.steps.count) steps passed successfully.\n\nFinal heart rate: \(viewModel.heartRate) BPM")
+                Text("All \(viewModel.sequenceManager.steps.count) steps passed successfully.")
             }
             .onChange(of: viewModel.sequenceManager.isCompleted) { completed in
                 if completed {
                     viewModel.showSuccessAlert = true
+                }
+            }
+            .sheet(isPresented: $viewModel.showCameraSettingsSheet) {
+                if let settings = viewModel.lastCameraSettings {
+                    CameraSettingsView(settings: settings, isPresented: $viewModel.showCameraSettingsSheet)
                 }
             }
         }
@@ -38,9 +43,13 @@ struct ContentView: View {
             Text("Test Sequence Passed!")
                 .font(.title2)
                 .fontWeight(.semibold)
-            Text("Heart Rate: \(viewModel.heartRate) BPM")
-                .font(.headline)
-                .foregroundColor(.secondary)
+
+            if viewModel.lastCameraSettings != nil {
+                Button("View Camera Settings") {
+                    viewModel.showCameraSettingsSheet = true
+                }
+                .buttonStyle(.bordered)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -132,7 +141,7 @@ struct ContentView: View {
                 .buttonStyle(.borderedProminent)
             } else if viewModel.sequenceManager.isCompleted {
                 Button(action: viewModel.resetSequence) {
-                    Label("Reset", systemImage: "arrow.counterclockwise")
+                    Label("Restart", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -150,6 +159,15 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
                 .tint(.red)
             } else {
+                if viewModel.sequenceManager.currentStepName == .pulse {
+                    Button(action: viewModel.skipCurrentStep) {
+                        Label("Skip", systemImage: "forward.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.teal)
+                }
+
                 Button(action: viewModel.stopMeasurement) {
                     Label("Stop", systemImage: "stop.fill")
                         .frame(maxWidth: .infinity)
@@ -201,6 +219,68 @@ struct StepRow: View {
             Image(systemName: "xmark.circle.fill")
                 .foregroundColor(.red)
         }
+    }
+}
+
+struct CameraSettingsView: View {
+    let settings: [String: Any]
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(settings.keys.sorted(), id: \.self) { key in
+                    settingRow(for: key, value: settings[key])
+                }
+            }
+            .listStyle(.plain)
+            .navigationTitle("Camera Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") { isPresented = false }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func settingRow(for key: String, value: Any?) -> some View {
+        if let array = value as? NSArray, array.count > 0, array[0] is NSArray {
+            DisclosureGroup {
+                Text(formatArray(array))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
+            } label: {
+                HStack {
+                    Text(key).fontWeight(.semibold)
+                    Spacer()
+                    Text("[\(array.count) entries]")
+                        .foregroundColor(.secondary)
+                }
+            }
+        } else {
+            HStack {
+                Text(key).fontWeight(.semibold)
+                Spacer()
+                Text(formatScalar(value))
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private func formatScalar(_ value: Any?) -> String {
+        guard let value = value else { return "null" }
+        if let str = value as? String { return str }
+        if let num = value as? NSNumber { return "\(num)" }
+        return "\(value)"
+    }
+
+    private func formatArray(_ array: NSArray) -> String {
+        array.compactMap { element -> String? in
+            guard let row = element as? NSArray else { return nil }
+            return "[" + row.map { "\($0)" }.joined(separator: ", ") + "]"
+        }.joined(separator: "\n")
     }
 }
 

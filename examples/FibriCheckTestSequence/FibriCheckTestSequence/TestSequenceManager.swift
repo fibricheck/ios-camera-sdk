@@ -60,8 +60,8 @@ class TestSequenceManager: ObservableObject {
                      instruction: "While keeping your finger on the camera, shake the phone gently. This can only be triggered while recording is in progress.",
                      expectedEvent: "onMovementDetected"),
 
-            TestStep(name: .recordingStart, title: "Recording Started",
-                     instruction: "Recording has begun!",
+            TestStep(name: .recordingStart, title: "Test Recording Started",
+                     instruction: "Waiting for recording to start...",
                      expectedEvent: "onMeasurementStart"),
 
             TestStep(name: .recording, title: "Recording in Progress",
@@ -77,18 +77,16 @@ class TestSequenceManager: ObservableObject {
                      expectedEvent: "onMeasurementProcessed"),
 
             TestStep(name: .measurementValidation, title: "Validate Measurement",
-                     instruction: "Validating measurement output contains all required fields...",
+                     instruction: "Validating: quadrants, time, technical_details.camera_hdr, camera_settings.exposure_mode, camera_settings.hdr_profile, camera_settings.hdr_mode, camera_settings.focus_mode, camera_settings.focus, camera_settings.white_balance",
                      expectedEvent: "onMeasurementValidated")
         ]
     }
 
     func start() {
+        initializeSteps()
         currentStepIndex = 0
         isCompleted = false
         failureReason = nil
-        for i in 0..<steps.count {
-            steps[i].status = .pending
-        }
         steps[0].status = .current
     }
 
@@ -96,9 +94,16 @@ class TestSequenceManager: ObservableObject {
         currentStepIndex = -1
         isCompleted = false
         failureReason = nil
-        for i in 0..<steps.count {
-            steps[i].status = .pending
-        }
+        initializeSteps()
+    }
+
+    func skipCurrentStep() {
+        completeCurrentStep()
+    }
+
+    func updateCurrentStepInstruction(_ instruction: String) {
+        guard currentStepIndex >= 0 && currentStepIndex < steps.count else { return }
+        steps[currentStepIndex].instruction = instruction
     }
 
     func onEvent(_ eventName: String) {

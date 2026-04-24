@@ -180,7 +180,7 @@ static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace
     NSString* focusModeString = cameraSettingModeToString(self.internal_focusMode);
     NSString* hdrModeString = hdrModeToString(self.internal_hdrMode);
 
-    if (self.internal_exposureMode != CameraModeLocked && exposureModeString != nil) {
+    if (exposureModeString != nil) {
         output[@"exposure_mode"] = exposureModeString;
     }
     if (focusModeString != nil) {
