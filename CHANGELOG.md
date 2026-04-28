@@ -5,82 +5,69 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0]
-
+## [1.1.0] - 2026-04-24
 
 ### Added
+- Added custom settings and logging (FCRN-2108) ([1343f02](https://github.com/fibricheck/ios-camera-sdk/commit/1343f02a97805a960f5b9df53abaff9da99180d8))
+- UDI label added (FCS-79) ([bdb8880](https://github.com/fibricheck/ios-camera-sdk/commit/bdb88806487d12a217b3af730a28eed48fd96518))
+- New release process ([dc35022](https://github.com/fibricheck/ios-camera-sdk/commit/dc35022182cb240a801e85738e41a293adf2348c))
+- Implement test sequence ([4f0b01d](https://github.com/fibricheck/ios-camera-sdk/commit/4f0b01da0c2b44fb75746d4c0a2ecd1e370d1aeb))
+- Added hdr config (FCS-84) ([53bd199](https://github.com/fibricheck/ios-camera-sdk/commit/53bd199f10ebe1bdd23396df9516094454e9ba41))
 
+### Changed
+- Updated testcases to cover the test sequencer ([91107fa](https://github.com/fibricheck/ios-camera-sdk/commit/91107fa6ab6a43636b85912b3104952c7fce1c63))
+- Hdr and logging (FCS-84) ([8f2ec67](https://github.com/fibricheck/ios-camera-sdk/commit/8f2ec67fa14b46e1931e0e157d36eaca1e74d502))
+- Added log section to readme (FCS-84) ([acac897](https://github.com/fibricheck/ios-camera-sdk/commit/acac89778a20eb208f2118a9ba9ddf660182c9aa))
+- Updated defaults (FCS-85) ([e5be98c](https://github.com/fibricheck/ios-camera-sdk/commit/e5be98c0d2ace8b7d779a9b228c8f07faa7b5edd))
+- Updated Changelog generation ([f9120ea](https://github.com/fibricheck/ios-camera-sdk/commit/f9120ea87480881b41aa97a8e8c3e9a80f20376a))
+- HDR Logging (FCS-85) ([63e146b](https://github.com/fibricheck/ios-camera-sdk/commit/63e146b070d3af0d067e25ef77cf43f355f0d0c0))
+- Rename internal camera settings (FCS-85) ([90f66da](https://github.com/fibricheck/ios-camera-sdk/commit/90f66da717f774546149517361fd12816248b283))
+- Validate output (FCS-85) ([39a5dc5](https://github.com/fibricheck/ios-camera-sdk/commit/39a5dc5dd00eea6112bbba141e97023923e22739))
+- Remove outdated ppg array ([766242a](https://github.com/fibricheck/ios-camera-sdk/commit/766242a7e0050e6467f5d1b7f78d05159de0a02e))
+- Updated hdr & focus logging + sequence tester (FCS-85) ([cec8c1e](https://github.com/fibricheck/ios-camera-sdk/commit/cec8c1eb3d561868c802318dc219e748d57185ad))
 
-- Added custom settings and logging (FCRN-2108)
-- UDI label added (FCS-79)
-- New release process
-- Implement test sequence
+### Fixed
+- Unit tests on CI ([698993c](https://github.com/fibricheck/ios-camera-sdk/commit/698993c201a5f8608dea9a4bdbb2afdeaa13cd43))
+- CI release bump ([9ec4c8d](https://github.com/fibricheck/ios-camera-sdk/commit/9ec4c8ddb8ab38b6a4ad37c5794ba3d409d9b3df))
+- FCS-79 Update IFU URL to correct (generic) link ([01ba9c8](https://github.com/fibricheck/ios-camera-sdk/commit/01ba9c86300cbab2a0406bc8436740fa74b774c3))
+- Swift Testing Errors ([6f025b0](https://github.com/fibricheck/ios-camera-sdk/commit/6f025b03315e13c0ad57c27413140915b8f7fc10))
+
 ## [1.0.2] - 2024-12-11
 
-
-### Changed
-
-
-- Release 1.0.2
-- Release 1.0.2 (main)
-## [1.0.2-pre.1] - 2024-11-07
-
-
 ### Fixed
+- Filter naming update to prevent incorrect linking ([351684d](https://github.com/fibricheck/ios-camera-sdk/commit/351684d8660731e0e939b25ae56c39e4b3fc5bb8))
 
-
-- Filter naming update to prevent incorrect linking
 ## [1.0.1] - 2023-11-30
 
-
 ### Changed
-
-
-- Regulatory Documentation added
-- Update readme to include the release process
-- Add quadrant uniqueness validation to example project for testing [FCS-52]
-- Release 1.0.1 (main)
-
+- Regulatory Documentation added ([395ce68](https://github.com/fibricheck/ios-camera-sdk/commit/395ce68c7a602a17a19cc2cb44006341c2f307aa))
+- Update readme to include the release process ([0624e97](https://github.com/fibricheck/ios-camera-sdk/commit/0624e974052e3411a9a13e0fe5a1b38433f2c46a))
+- Add quadrant uniqueness validation to example project for testing [FCS-52] ([ae21e71](https://github.com/fibricheck/ios-camera-sdk/commit/ae21e71f1dae13568b04a25dae11497b48822e7c))
 
 ### Fixed
+- Quadrant bugfix FCS-52 ([fbf4170](https://github.com/fibricheck/ios-camera-sdk/commit/fbf4170d179f0c2ee36ef4edcab4087053cc2d5c))
 
-
-- Quadrant bugfix FCS-52
 ## [1.0.0] - 2023-09-25
 
-
 ### Added
-
-
-- Add regulory documentation (#8)
-- FCS-37 Add technical camera details to measurement (#10)
-
+- Add regulory documentation (#8) ([ad86c45](https://github.com/fibricheck/ios-camera-sdk/commit/ad86c45aaf25b1629e364b544a5d4ac0abcc29ee))
+- FCS-37 Add technical camera details to measurement (#10) ([091b0ab](https://github.com/fibricheck/ios-camera-sdk/commit/091b0ab50f67f32855a19375e4fac9f3047347ec))
 
 ### Changed
-
-
-- Add diagnostic warning on rate or rhythm diagnostic capabilities (#7)
-- Update regulatory docs (#12)
-- Release 1.0.0
-- Update release-please configuration
-- Remove compliance notice ahead of v1.0 release
-- Release 1.0.0 (#13) (main)
-
+- Add diagnostic warning on rate or rhythm diagnostic capabilities (#7) ([aac8ac4](https://github.com/fibricheck/ios-camera-sdk/commit/aac8ac4ad51e4036b5ca04e6c6759964148df23b))
+- Update regulatory docs (#12) ([dae569d](https://github.com/fibricheck/ios-camera-sdk/commit/dae569db4ea268135ec4642404cb3ba835c7d7f4))
+- Update release-please configuration ([bdb1c32](https://github.com/fibricheck/ios-camera-sdk/commit/bdb1c32964d0d597f199eff2a6119e81ada8e554))
+- Remove compliance notice ahead of v1.0 release ([b100ecc](https://github.com/fibricheck/ios-camera-sdk/commit/b100ecc006b30ce80f1ba4c2b35424d44039f36b))
 
 ### Fixed
+- Return measurement_timestamp in measurement result (#11) ([d0bdb3d](https://github.com/fibricheck/ios-camera-sdk/commit/d0bdb3dc874a6e61b5843afb143141887b63f396))
 
-
-- Return measurement_timestamp in measurement result (#11)
 ## [0.1.3] - 2023-05-11
 
-
 ### Changed
+- Add release please release automation ([393d6a4](https://github.com/fibricheck/ios-camera-sdk/commit/393d6a4db378c7d3b320acedc9279a0f96c79338))
+- Be more specific on when to run ci/cd build pipelines ([077b5f9](https://github.com/fibricheck/ios-camera-sdk/commit/077b5f9fc31ee1bf42c2f1316f23f15b3a44d7d1))
+- Add compliance notice ([5a68de7](https://github.com/fibricheck/ios-camera-sdk/commit/5a68de7ab3ad093fdeb5b3a6ef14ebfe6fcb9c5e))
 
-
-- Add release please release automation
-- Release 0.1.3
-- Be more specific on when to run ci/cd build pipelines
-- Add compliance notice
-- Release 0.1.3 (#6) (main)
 ## [0.1.0] - 2023-04-13
 

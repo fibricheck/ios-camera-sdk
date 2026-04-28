@@ -59,19 +59,26 @@ xcrun simctl list devices available
 This project uses [git-cliff](https://git-cliff.org/) to generate changelogs following the [Keep a Changelog](https://keepachangelog.com/) format.
 
 ```bash
-# Update CHANGELOG.md
+# Update CHANGELOG.md (after prod tag exists)
 git-cliff --output CHANGELOG.md
 
-# Preview unreleased changes
+# Preview unreleased changes without a tag
 git-cliff --unreleased
+
+# Generate changelog labelled with a specific version (e.g. before the prod tag exists)
+git-cliff --tag v1.1.0 --output CHANGELOG.md
 ```
 
 ## Releasing a new version
 To release a new version, follow the [git convention](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
-When a new PR to the `main` branch is merged, it will trigger the release process.
-Development releases will be build on PR merged to the `dev` branch
 
-This project uses [git-cliff](https://git-cliff.org/) to generate changelogs following the [Keep a Changelog](https://keepachangelog.com/) format.
+Releases are fully automated via CI, so pls do not create tags manually :)
+
+| Release type | Trigger | Tag format |
+|---|---|---|
+| Production | Merge PR to `main` | `vX.Y.Z` |
+| Development | Merge PR to `dev` | `vX.Y.Z-dev.N` |
+| Snapshot | Manual dispatch in GitHub Actions | snapshot tag |
 
 ## Logged Data Structure
 When a `log` flag is enabled on a `CameraSettingsInput` and its corresponding mode is set to `auto`, the measurement result will include a `camera_settings` object containing the relevant log.

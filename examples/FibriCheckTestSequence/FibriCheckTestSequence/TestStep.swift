@@ -22,13 +22,14 @@ enum StepName: Int, CaseIterable {
     case recording
     case recordingFinished
     case processing
+    case measurementValidation
 }
 
 struct TestStep: Identifiable {
     let id: Int
     let name: StepName
     let title: String
-    let instruction: String
+    var instruction: String
     let expectedEvent: String
     var status: TestStepStatus
 

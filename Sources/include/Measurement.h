@@ -15,7 +15,6 @@
 @property NSString * version;
 @property NSUInteger heartRate;
 @property NSUInteger attempts;
-@property NSMutableArray * ppg;
 @property NSTimeInterval startTime;
 @property BOOL skippedMovementDetection;
 @property BOOL skippedPulseDetection;

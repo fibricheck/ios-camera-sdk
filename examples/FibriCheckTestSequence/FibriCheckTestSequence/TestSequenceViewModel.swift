@@ -12,6 +12,8 @@ class TestSequenceViewModel: ObservableObject {
     @Published private(set) var isRunning: Bool = false
     @Published private(set) var lastEvent: String = ""
     @Published var showSuccessAlert: Bool = false
+    @Published var lastCameraSettings: [String: Any]? = nil
+    @Published var showCameraSettingsSheet: Bool = false
 
     private var fibriChecker: FibriChecker?
     private var skipFingerDetection: Bool = false
@@ -33,6 +35,7 @@ class TestSequenceViewModel: ObservableObject {
     }
 
     func startSequence() {
+        lastCameraSettings = nil
         sequenceManager.start()
         skipFingerDetection = false
         lastEvent = ""
@@ -42,7 +45,6 @@ class TestSequenceViewModel: ObservableObject {
     }
 
     func stopMeasurement() {
-        tearDownFibriChecker()
         resetSequence()
     }
 
@@ -52,11 +54,21 @@ class TestSequenceViewModel: ObservableObject {
         timeRemaining = 0
         skipFingerDetection = false
         lastEvent = ""
+        lastCameraSettings = nil
         sequenceManager.reset()
     }
 
     func retryStep() {
         sequenceManager.retryCurrentStep()
+        if sequenceManager.currentStepName == .movementDetected {
+            sequenceManager.updateCurrentStepInstruction("Place finger on camera — waiting for recording to start")
+        }
+        startMeasurement()
+    }
+
+    func skipCurrentStep() {
+        tearDownFibriChecker()
+        sequenceManager.skipCurrentStep()
         startMeasurement()
     }
 
@@ -121,8 +133,8 @@ class TestSequenceViewModel: ObservableObject {
             fc.onMeasurementFinished = {
                 DispatchQueue.main.async { self?.handleMeasurementFinished() }
             }
-            fc.onMeasurementProcessed = { _ in
-                DispatchQueue.main.async { self?.handleMeasurementProcessed() }
+            fc.onMeasurementProcessed = { measurement in
+                DispatchQueue.main.async { self?.handleMeasurementProcessed(measurement: measurement) }
             }
             fc.onMeasurementError = { error in
                 DispatchQueue.main.async { self?.handleMeasurementError(error: error) }
@@ -132,7 +144,7 @@ class TestSequenceViewModel: ObservableObject {
             }
 
             fc.flashEnabled = true
-            fc.sampleTime = 20
+            fc.sampleTime = 10
 
             let (currentStep, shouldSkipFinger) = await MainActor.run {
                 (self?.sequenceManager.currentStepName, self?.skipFingerDetection ?? false)
@@ -150,11 +162,14 @@ class TestSequenceViewModel: ObservableObject {
             fc.fingerDetectionExpiryTime = 3
             fc.pulseDetectionExpiryTime = 10
         } else if step == .pulseTimeout {
-            fc.fingerDetectionExpiryTime = UInt.max    // No timeout - wait for user to place finger
-            fc.pulseDetectionExpiryTime = 1   // 1 second for quick pulse timeout test
+            fc.fingerDetectionExpiryTime = UInt.max  // No timeout - wait for user to place finger
+            fc.pulseDetectionExpiryTime = 1          // 1 second for quick pulse timeout test
+        } else if step == .calibration || step == .movementDetected || step == .recordingStart {
+            fc.fingerDetectionExpiryTime = UInt.max  // No timeout - wait for user to place finger
+            fc.pulseDetectionExpiryTime = 0          // Skip pulse detection immediately
         } else {
-            fc.fingerDetectionExpiryTime = UInt.max    // No timeout - wait for user to place finger
-            fc.pulseDetectionExpiryTime = 30  // 30 seconds for pulse detection
+            fc.fingerDetectionExpiryTime = UInt.max  // No timeout - wait for user to place finger
+            fc.pulseDetectionExpiryTime = 30         // 30 seconds for pulse detection
         }
     }
 
@@ -168,7 +183,6 @@ class TestSequenceViewModel: ObservableObject {
             return
         }
 
-        // Don't advance when finger is detected during pulse timeout test
         if step == .pulseTimeout {
             return
         }
@@ -181,6 +195,8 @@ class TestSequenceViewModel: ObservableObject {
 
         if sequenceManager.currentStepName == .fingerRemoved {
             sequenceManager.onEvent("onFingerRemoved")
+            // Now on .movementDetected — set phase-specific instruction since finger was just removed
+            sequenceManager.updateCurrentStepInstruction("Place finger on camera — waiting for recording to start")
             restartMeasurementForNextStep(skipFingerDetection: false)
         }
     }
@@ -189,13 +205,16 @@ class TestSequenceViewModel: ObservableObject {
         updateLastEvent("onFingerDetectionTimeExpired")
         let step = sequenceManager.currentStepName
 
+        if let step = step, step.rawValue >= StepName.recording.rawValue {
+            return
+        }
+
         if step == .fingerTimeout {
             sequenceManager.onEvent("onFingerDetectionTimeExpired")
             restartMeasurementForNextStep(skipFingerDetection: true)
             return
         }
 
-        // Ignore finger timeout during pulse timeout test
         if step == .pulseTimeout {
             return
         }
@@ -220,6 +239,10 @@ class TestSequenceViewModel: ObservableObject {
     func handlePulseDetectionTimeExpired() {
         updateLastEvent("onPulseDetectionTimeExpired")
         let step = sequenceManager.currentStepName
+
+        if let step = step, step.rawValue >= StepName.recording.rawValue {
+            return
+        }
 
         if step == .pulseTimeout {
             sequenceManager.onEvent("onPulseDetectionTimeExpired")
@@ -250,44 +273,117 @@ class TestSequenceViewModel: ObservableObject {
 
     func handleMeasurementStart() {
         updateLastEvent("onMeasurementStart")
+        if sequenceManager.currentStepName == .movementDetected {
+            sequenceManager.updateCurrentStepInstruction("Recording in progress — shake the device now!")
+            return
+        }
         sequenceManager.onEvent("onMeasurementStart")
     }
 
     func handleTimeRemaining(remaining: UInt) {
         timeRemaining = remaining
         updateLastEvent("onTimeRemaining", extra: "\(remaining)s")
-        sequenceManager.onEvent("onTimeRemaining")
+        // Show countdown in the instruction — step advances via handleMeasurementFinished
+        let step = sequenceManager.currentStepName
+        if step == .recording || step == .recordingStart {
+            sequenceManager.updateCurrentStepInstruction("Recording... \(remaining)s remaining")
+        }
     }
 
     func handleMeasurementFinished() {
         updateLastEvent("onMeasurementFinished")
+        let step = sequenceManager.currentStepName
+
+        if step == .fingerRemoved {
+            tearDownFibriChecker()
+            sequenceManager.failCurrentStep(reason: "Recording finished before finger was removed - retry and lift finger sooner")
+            return
+        }
+        if step == .movementDetected {
+            tearDownFibriChecker()
+            sequenceManager.failCurrentStep(reason: "Recording finished before movement was detected - retry and shake sooner")
+            return
+        }
+        // Advance .recording if still on it before completing .recordingFinished
+        if step == .recording {
+            sequenceManager.onEvent("onTimeRemaining")
+        }
         sequenceManager.onEvent("onMeasurementFinished")
     }
 
-    func handleMeasurementProcessed() {
+    func handleMeasurementProcessed(measurement: FibriCheckCameraSDK.Measurement? = nil) {
         updateLastEvent("onMeasurementProcessed")
+        let step = sequenceManager.currentStepName
 
-        if sequenceManager.currentStepName == .fingerRemoved {
-            tearDownFibriChecker()
-            sequenceManager.failCurrentStep(reason: "Measurement completed - remove your finger before it finishes")
+        // Ignore early completions — can happen if sampleTime is too short and the
+        // recording finishes before the user reaches the processing step.
+        guard step == .processing || step == .measurementValidation else {
+            isRunning = false
             return
         }
 
         sequenceManager.onEvent("onMeasurementProcessed")
         fibriChecker = nil
         isRunning = false
+
+        if let error = validateMeasurement(measurement) {
+            sequenceManager.failCurrentStep(reason: error)
+        } else {
+            sequenceManager.onEvent("onMeasurementValidated")
+            if let dict = measurement?.mapToDictionary() as? [String: Any],
+               let cs = dict["camera_settings"] as? [String: Any] {
+                lastCameraSettings = cs
+            }
+        }
+    }
+
+    private func validateMeasurement(_ measurement: FibriCheckCameraSDK.Measurement?) -> String? {
+        guard let measurement = measurement else { return "Measurement is nil" }
+        guard let dict = measurement.mapToDictionary() as? [String: Any] else { return "Could not map measurement to dictionary" }
+
+        guard let quadrants = dict["quadrants"] as? [[Any]], !quadrants.isEmpty else { return "quadrants is missing or empty" }
+        guard let time = dict["time"] as? [Any], !time.isEmpty else { return "time is missing or empty" }
+
+        if dict["measurement_timestamp"] == nil { return "measurement_timestamp is missing" }
+
+        guard let technicalDetails = dict["technical_details"] as? [String: Any] else { return "technical_details is missing" }
+        guard let cameraHdr = technicalDetails["camera_hdr"] as? String, !cameraHdr.isEmpty else { return "technical_details.camera_hdr is missing or empty" }
+
+        guard let cameraSettings = dict["camera_settings"] as? [String: Any] else { return "camera_settings is missing" }
+        guard let exposureMode = cameraSettings["exposure_mode"] as? String, !exposureMode.isEmpty else { return "camera_settings.exposure_mode is missing or empty" }
+        guard let hdrProfile = cameraSettings["hdr_profile"] as? String, !hdrProfile.isEmpty else { return "camera_settings.hdr_profile is missing or empty" }
+        guard let hdrMode = cameraSettings["hdr_mode"] as? String, !hdrMode.isEmpty else { return "camera_settings.hdr_mode is missing or empty" }
+        guard let focusMode = cameraSettings["focus_mode"] as? String, !focusMode.isEmpty else { return "camera_settings.focus_mode is missing or empty" }
+        guard let focus = cameraSettings["focus"] as? [[Any]], !focus.isEmpty else { return "camera_settings.focus is missing or empty" }
+        guard let whiteBalance = cameraSettings["white_balance"] as? [[Any]], !whiteBalance.isEmpty else { return "camera_settings.white_balance is missing or empty" }
+
+        return nil
     }
 
     func handleMeasurementError(error: String?) {
         updateLastEvent("onMeasurementError", extra: error)
+        let step = sequenceManager.currentStepName
+
+        // Errors during or after recording are expected (e.g. movement, finger removal)
+        if let step = step, step.rawValue >= StepName.recording.rawValue {
+            return
+        }
+
         tearDownFibriChecker()
         sequenceManager.failCurrentStep(reason: error ?? "Unknown error")
     }
 
     func handleMovementDetected() {
         updateLastEvent("onMovementDetected")
+        guard let step = sequenceManager.currentStepName else { return }
 
-        if sequenceManager.currentStepName == .movementDetected {
+        // Shaking generates many events. Once step 10 (.movementDetected) is done, all
+        // subsequent steps must be protected from lingering shake events.
+        if step.rawValue >= StepName.recordingStart.rawValue {
+            return
+        }
+
+        if step == .movementDetected {
             sequenceManager.onEvent("onMovementDetected")
             restartMeasurementForNextStep(skipFingerDetection: false)
             return

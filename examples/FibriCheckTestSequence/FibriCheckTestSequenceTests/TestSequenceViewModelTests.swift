@@ -166,12 +166,30 @@ final class TestSequenceViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.sequenceManager.currentStepName, .movementDetected)
     }
 
-    func testHandleMeasurementProcessedFailsOnFingerRemovedStep() {
+    func testHandleMeasurementProcessedIgnoredOnFingerRemovedStep() {
         advanceToStep(.fingerRemoved)
 
         viewModel.handleMeasurementProcessed()
 
-        XCTAssertEqual(viewModel.sequenceManager.failureReason, "Measurement completed - remove your finger before it finishes")
+        // handleMeasurementProcessed guards on .processing/.measurementValidation — early-returns otherwise
+        XCTAssertNil(viewModel.sequenceManager.failureReason)
+        XCTAssertFalse(viewModel.isRunning)
+    }
+
+    func testHandleMeasurementFinishedFailsOnFingerRemovedStep() {
+        advanceToStep(.fingerRemoved)
+
+        viewModel.handleMeasurementFinished()
+
+        XCTAssertEqual(viewModel.sequenceManager.failureReason, "Recording finished before finger was removed - retry and lift finger sooner")
+    }
+
+    func testHandleMeasurementFinishedFailsOnMovementDetectedStep() {
+        advanceToStep(.movementDetected)
+
+        viewModel.handleMeasurementFinished()
+
+        XCTAssertEqual(viewModel.sequenceManager.failureReason, "Recording finished before movement was detected - retry and shake sooner")
     }
 
     func testHandleFingerRemovedIgnoredOnOtherSteps() {
