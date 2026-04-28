@@ -112,16 +112,6 @@ struct ContentView: View {
         addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
         addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))
 
-        if let data = try? JSONSerialization.data(withJSONObject: measurement.technical_details, options: .prettyPrinted),
-           let jsonString = String(data: data, encoding: .utf8) {
-            print(jsonString)
-        }
-        
-        if let data = try? JSONSerialization.data(withJSONObject: measurement.camera_settings, options: .prettyPrinted),
-           let jsonString = String(data: data, encoding: .utf8) {
-            print(jsonString)
-        }
-        
         return true
         
     }
