@@ -111,7 +111,7 @@ struct ContentView: View {
         addToLogString(txt: "Time Vector Length" + String(fcParsedResult.time.count))
         addToLogString(txt: "Quadrants Size:" + String(fcParsedResult.quadrants.count))
         addToLogString(txt: "measurement_timestamp" + String(fcParsedResult.measurement_timestamp))
-        
+
         return true
         
     }
@@ -131,7 +131,7 @@ struct ContentView: View {
                     var threadDone = false
                     let fc = FibriChecker()
                     
-                    fc.sampleTime = 10;
+                    fc.sampleTime = 30;
                     fc.pulseDetectionExpiryTime = 15000;
 //                    fc.fingerDetectionExpiryTime = 500000;
                     
@@ -224,6 +224,28 @@ struct ContentView: View {
                         logEvent(name: "onPulseDetected")
                     }
                     fc.onPulseDetected = onPulseDetected
+                    
+                    fc.setCameraSettings(
+                        CameraSettings(
+                            values: CameraSettingMode.modeLocked,
+                            internal_manualIso: 100,
+                            internal_manualExposureTime: 160_000,
+
+                            internal_whiteBalanceMode: WhiteBalanceMode.auto,
+                            internal_manualWhiteBalanceRgb: RgbColor(r: 1.0, g: 1.0, b: 1.0),
+                            internal_manualWhiteBalanceKelvin: 5000,
+
+                            internal_focusMode: CameraSettingMode.modeAuto,
+                            internal_manualFocus: 0.0,
+
+                            internal_hdrMode: HdrMode.off,
+
+                            internal_logExposure: true,
+                            internal_logWhiteBalance: true,
+                            internal_logFocus: true,
+                            internal_logHdr: true
+                        )
+                    )
                     
                     
                     fc.startMeasurement()

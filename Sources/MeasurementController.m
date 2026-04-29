@@ -161,11 +161,11 @@
     } else{
         if (self.delegate && [self.delegate respondsToSelector:@selector(measurementControllerDidReceiveError)]) {
             [self.delegate measurementControllerDidReceiveError];
+            return;
         }
     }
 
-    AVCaptureInput *input = [self.session.inputs objectAtIndex:0];
-    AVCaptureInputPort *port = [input.ports objectAtIndex:0];
+    AVCaptureInputPort *port = [cameraInput.ports objectAtIndex:0];
     
     NSLog(@"Register observer to input port format description change");
 

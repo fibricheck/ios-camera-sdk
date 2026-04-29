@@ -21,7 +21,6 @@
         self.version = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
         self.dataPoints = [NSMutableArray<DataPoint *> new];
         self.time = [NSMutableArray new];
-        self.ppg = [NSMutableArray new];
         self.technical_details = [[NSMutableDictionary alloc] init];
         self.camera_settings = [[NSMutableDictionary alloc] init];
 
@@ -47,7 +46,6 @@
     
     for (DataPoint * dataPoint in self.dataPoints) {
         [self.time addObject:@(dataPoint.tms)];
-        [self.ppg addObject:@(dataPoint.filterValue)];
         
         for (int row = 0; row < self.imageProcessorConfig.rowSize; row++) {
             for (int col = 0; col < self.imageProcessorConfig.colSize; col++) {
@@ -144,8 +142,6 @@
 
     meaModel[@"quadrants"] = quadrants;
 
-    meaModel[@"ppg"] = @{@"frequency":frequency, @"signal":_ppg};
-
     meaModel[@"time"] = _time;
 
     NSUInteger measurement_timestamp = _startTime * 1000;
@@ -171,8 +167,8 @@
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"Measurement\n -version: %@\n -heartrate: %d\n -time: %@\n -ppg: %@\n -acc: %@\n -grav: %@\n -gyro: %@\n -gyro: %@\n -quadrants: %@",
-            self.version, (int)self.heartRate, self.time, self.ppg, self.acc, self.grav, self.gyro, self.rotation, self.quadrants];
+    return [NSString stringWithFormat:@"Measurement\n -version: %@\n -heartrate: %d\n -time: %@\n -acc: %@\n -grav: %@\n -gyro: %@\n -rotation: %@\n -quadrants: %@",
+            self.version, (int)self.heartRate, self.time, self.acc, self.grav, self.gyro, self.rotation, self.quadrants];
 }
 
 @end
