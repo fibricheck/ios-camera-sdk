@@ -1,11 +1,15 @@
 import SwiftUI
+import FibriCheckCameraSDK
 
 struct ContentView: View {
     @StateObject private var viewModel = TestSequenceViewModel()
 
+    private let label: [String: String] = FibriChecker.getLabel()
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                labelInfoBanner
                 headerView
                 stepsList
                 if let currentStep = viewModel.sequenceManager.currentStep {
@@ -33,6 +37,37 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private var labelInfoBanner: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label["componentName"] ?? "")
+                .font(.system(.caption, design: .monospaced))
+                .fontWeight(.semibold)
+            HStack(spacing: 12) {
+                Text(label["ceLabel"] ?? "")
+                    .font(.system(.caption2, design: .monospaced))
+                Text(label["releaseDate"] ?? "")
+                    .font(.system(.caption2, design: .monospaced))
+            }
+            Text(label["udi"] ?? "")
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label["manufacturer"] ?? "")
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundColor(.secondary)
+            if let ifu = label["ifu"] {
+                Text(ifu)
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundColor(.blue)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray5))
     }
 
     private var successCard: some View {
