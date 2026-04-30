@@ -70,15 +70,46 @@ git-cliff --tag v1.1.0 --output CHANGELOG.md
 ```
 
 ## Releasing a new version
-To release a new version, follow the [git convention](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
 
-Releases are fully automated via CI, so pls do not create tags manually :)
+Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines when writing commit messages — this is what `git-cliff` uses to group entries in the changelog.
 
-| Release type | Trigger | Tag format |
-|---|---|---|
-| Production | Merge PR to `main` | `vX.Y.Z` |
-| Development | Merge PR to `dev` | `vX.Y.Z-dev.N` |
-| Snapshot | Manual dispatch in GitHub Actions | snapshot tag |
+### Branch strategy
+
+- **Feature work**: feature branch → PR to `main` (or a version branch like `v1.2.3` when working on multiple versions in parallel)
+- **No permanent `dev` branch** — all releases are triggered manually via GitHub Actions
+
+### Workflows
+
+| Workflow | Trigger | Allowed branches | Tag format |
+|---|---|---|---|
+| **Prepare Release** | Manual | any | — |
+| **Deploy Snapshot** | Manual | any | `vX.Y.Z-snapshot.<hash>` |
+| **Deploy Development** | Manual | `main`, `v*.*.*` | `vX.Y.Z-dev.N` |
+| **Deploy Production** | Manual | `main` only | `vX.Y.Z` |
+
+### Prepare Release
+
+1. Go to **Actions → Prepare Release → Run workflow**, enter the version (e.g. `1.2.0`) and the `target_branch` (default: `main`). This will be the branch the PR is targeted at w/ the updated version & release dates
+2. The workflow updates `CHANGELOG.md` and `sdk-release.json` (version + today's date), then opens a PR against the target branch.
+3. Review and merge the PR.
+
+> If the PR sits for more than a day before deploying, retrigger Prepare Release to refresh the date — the Deploy workflows validate that `sdk-release.json` contains today's date.
+
+### Production deploy
+
+After merging the Prepare Release PR, go to **Actions → Deploy Production → Run workflow** from `main`.
+
+> The git tag (e.g. `v1.2.0`) and GitHub release are created automatically — do not create tags manually.
+
+### Development deploy
+
+After merging the Prepare Release PR, go to **Actions → Deploy Development → Run workflow** from `main` or a version branch (e.g. `v1.2.3`).
+
+> The git tag (e.g. `v1.2.0`) and GitHub release are created automatically — do not create tags manually.
+
+### Snapshot deploy
+
+Go to **Actions → Deploy Snapshot → Run workflow** from any branch. No Prepare Release step needed — snapshots skip the date validation.
 
 ## Logged Data Structure
 When a `log` flag is enabled on a `CameraSettingsInput` and its corresponding mode is set to `auto`, the measurement result will include a `camera_settings` object containing the relevant log.
