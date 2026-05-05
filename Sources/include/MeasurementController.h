@@ -61,6 +61,7 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property BeatListener * beatListener;
 @property ImageProcessor * imageProcessor;
 @property (readonly) CameraInfo* cameraInfo;
+@property (nonatomic, strong, readonly, nullable) AVCaptureSession *captureSession;
 @property CameraSettings* cameraSettings;
 
 - (void)startMeasurement;

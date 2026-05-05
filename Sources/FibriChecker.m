@@ -193,4 +193,8 @@
     [self.measurementController.cameraSettings set:input];
 }
 
+-(AVCaptureSession *)captureSession {
+    return [self.measurementController captureSession];
+}
+
 @end

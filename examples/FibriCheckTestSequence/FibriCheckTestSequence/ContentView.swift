@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 import FibriCheckCameraSDK
 
 struct ContentView: View {
@@ -19,6 +20,20 @@ struct ContentView: View {
                 }
                 controlButtons
             }
+            .overlay(alignment: .bottomTrailing) {
+                if let session = viewModel.captureSession,
+                   let step = viewModel.sequenceManager.currentStepName,
+                   step.rawValue >= StepName.placeFinger.rawValue && step.rawValue <= StepName.recording.rawValue {
+                    CameraPreview(session: session)
+                        .frame(width: 100, height: 140)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white, lineWidth: 2))
+                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 200)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
             .navigationTitle("Test Sequence")
             .navigationBarTitleDisplayMode(.inline)
             .alert("Test Sequence Completed!", isPresented: $viewModel.showSuccessAlert) {
@@ -37,6 +52,9 @@ struct ContentView: View {
                 }
             }
         }
+        .animation(.spring(), value: viewModel.captureSession != nil && 
+                   viewModel.sequenceManager.currentStepName?.rawValue ?? 0 >= StepName.placeFinger.rawValue &&
+                   viewModel.sequenceManager.currentStepName?.rawValue ?? 0 <= StepName.recording.rawValue)
     }
 
     private var labelInfoBanner: some View {
@@ -316,6 +334,54 @@ struct CameraSettingsView: View {
             guard let row = element as? NSArray else { return nil }
             return "[" + row.map { "\($0)" }.joined(separator: ", ") + "]"
         }.joined(separator: "\n")
+    }
+}
+
+struct CameraPreview: UIViewRepresentable {
+    let session: AVCaptureSession
+
+    func makeUIView(context: Context) -> UIView {
+        return VideoPreviewContainerView(session: session)
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        if let container = uiView as? VideoPreviewContainerView {
+            container.update(session: session)
+        }
+    }
+}
+
+private class VideoPreviewContainerView: UIView {
+    private var previewLayer: AVCaptureVideoPreviewLayer
+
+    init(session: AVCaptureSession) {
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        super.init(frame: .zero)
+        self.backgroundColor = .black
+        setupLayer()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func update(session: AVCaptureSession) {
+        guard previewLayer.session !== session else { return }
+        // Setting .session on an existing layer can crash if the old session hasn't fully
+        // detached yet. Creating a new layer avoids that race entirely.
+        previewLayer.removeFromSuperlayer()
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(previewLayer)
+        previewLayer.frame = bounds
+    }
+
+    private func setupLayer() {
+        previewLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(previewLayer)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        previewLayer.frame = bounds
     }
 }
 

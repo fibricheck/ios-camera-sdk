@@ -94,14 +94,13 @@
 
 - (void)unloadAll {
     // NSLog(@"---------Removing observers-------");
+    [self stopCamera];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     self.motionManager = nil;
     self.measurement = nil;
     self.imageProcessor = nil;
     self.beatListener = nil;
-
-    [self stopCamera];
 }
 
 #pragma mark - Private API
@@ -150,6 +149,10 @@
 }
 
 - (void)startCamera {
+    if (self.session) {
+        [self.session stopRunning];
+    }
+
     self.session = [AVCaptureSession new];
     self.camera = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
 
@@ -585,6 +588,10 @@
 
 - (void)beatListenerDidDetectHeartRate:(NSUInteger)heartRate {
     [self notifyDelegateHeartRateUpdated:heartRate];
+}
+
+- (AVCaptureSession *)captureSession {
+    return self.session;
 }
 
 @end

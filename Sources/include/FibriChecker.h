@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class Measurement;
 @class CameraInfo;
@@ -35,6 +36,7 @@
 
 @property (readonly) NSUInteger heartRate;
 @property (readonly) CameraInfo* cameraInfo;
+@property (nonatomic, strong, readonly, nullable) AVCaptureSession *captureSession;
 
 #pragma mark - Callbacks
 
