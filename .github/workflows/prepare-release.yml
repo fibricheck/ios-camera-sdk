@@ -42,15 +42,14 @@ jobs:
           UPDATED=$(jq --arg version "${{ inputs.version }}" \
                        --arg date "$(date -u +%Y-%m-%d)" \
                        '.version = $version | .releaseDate = $date' \
-                       sdk-release.json)
-          echo "$UPDATED" > sdk-release.json
+                       Sources/Resources/sdk-release.json)
           echo "$UPDATED" > Sources/Resources/sdk-release.json
 
       - name: Create release branch and PR
         run: |
           BRANCH="chore/release-v${{ inputs.version }}"
           git checkout -b "$BRANCH"
-          git add CHANGELOG.md sdk-release.json Sources/Resources/sdk-release.json
+          git add CHANGELOG.md Sources/Resources/sdk-release.json
           git commit -m "chore: changelog update for v${{ inputs.version }}"
           git push origin "$BRANCH"
           gh pr create \

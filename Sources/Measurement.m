@@ -3,6 +3,7 @@
 #import "DataPoint.h"
 #import "ImageProcessorConfig.h"
 #import "YUV.h"
+#import "LabelInfo.h"
 
 @interface Measurement()
 
@@ -18,7 +19,7 @@
     self = [super init];
     if (self) {
         self.imageProcessorConfig = config;
-        self.version = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+        self.version = [LabelInfo getLabel][@"version"];
         self.dataPoints = [NSMutableArray<DataPoint *> new];
         self.time = [NSMutableArray new];
         self.technical_details = [[NSMutableDictionary alloc] init];

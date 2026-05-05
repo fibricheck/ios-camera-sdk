@@ -21,6 +21,10 @@
     return [LabelInfo getLabel];
 }
 
++ (NSString *)sdkVersion {
+    return [LabelInfo getLabel][@"version"];
+}
+
 #pragma mark - Public
 
 - (instancetype)init {

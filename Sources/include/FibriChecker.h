@@ -60,9 +60,14 @@
 
 /**
  * Returns the SDK label information for regulatory compliance.
- * @return Dictionary containing componentName, udi, ceLabel, manufacturer, releaseDate, and ifu.
+ * @return Dictionary containing componentName, version, udi, ceLabel, manufacturer, releaseDate, and ifu.
  */
 + (NSDictionary<NSString *, NSString *> *)getLabel;
+
+/**
+ * Returns the SDK version string (e.g. "1.2.0").
+ */
++ (NSString *)sdkVersion;
 
 #pragma mark - Methods
 
