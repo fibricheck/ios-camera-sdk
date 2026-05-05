@@ -405,7 +405,7 @@ static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace
     }
 }
 
-- (void) applyWhiteBalance:(AVCaptureDevice*)camera {
+- (void)applyWhiteBalance:(AVCaptureDevice*)camera {
     if (self.isAutoWhiteBalance) {
         if ([camera isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance]) {
             [camera setWhiteBalanceMode:AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance];
@@ -430,7 +430,7 @@ static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace
     }
 }
 
-- (void) applyFocus:(AVCaptureDevice*)camera {
+- (void)applyFocus:(AVCaptureDevice*)camera {
     if (self.isAutoFocus) {
         if ([camera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
             [camera setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
@@ -450,7 +450,7 @@ static NSString* _Nullable colorSpaceToHdrProfile(AVCaptureColorSpace colorSpace
     }
 }
 
-- (void) applyHdr:(AVCaptureDevice*)camera {
+- (void)applyHdr:(AVCaptureDevice*)camera {
     if (!camera.activeFormat.isVideoHDRSupported) {
         return;
     }
