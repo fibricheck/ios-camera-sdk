@@ -151,6 +151,15 @@ class TestSequenceViewModel: ObservableObject {
                 (self?.sequenceManager.currentStepName, self?.skipFingerDetection ?? false)
             }
 
+            if currentStep == .movementDetected && !fc.movementDetectionEnabled {
+                await MainActor.run {
+                    self?.isRunning = false
+                    self?.sequenceManager.skipCurrentStep()
+                    self?.startMeasurement()
+                }
+                return
+            }
+
             self?.configureTimeouts(for: currentStep, on: fc)
             fc.skippedFingerDetection = shouldSkipFinger
 
@@ -351,6 +360,10 @@ class TestSequenceViewModel: ObservableObject {
         guard let time = dict["time"] as? [Any], !time.isEmpty else { return "time is missing or empty" }
 
         if dict["measurement_timestamp"] == nil { return "measurement_timestamp is missing" }
+
+        if measurement.skippedFingerDetection { return "skippedFingerDetection is true — finger detection timed out during this measurement" }
+        if measurement.skippedPulseDetection { return "skippedPulseDetection is true — pulse detection timed out during this measurement" }
+        if measurement.skippedMovementDetection { return "skippedMovementDetection is true — movement detection was not enabled during this measurement" }
 
         guard let technicalDetails = dict["technical_details"] as? [String: Any] else { return "technical_details is missing" }
         guard let cameraHdr = technicalDetails["camera_hdr"] as? String, !cameraHdr.isEmpty else { return "technical_details.camera_hdr is missing or empty" }

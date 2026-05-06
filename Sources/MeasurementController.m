@@ -355,6 +355,7 @@
     switch (_state) {
         case MeasurementControllerStateDetectingFinger:
             if (_fingerDetectionExpiryTime == 0 || _event == MeasurementControllerEventFingerDetected || _event == MeasurementControllerEventFingerDetectionTimeExpired) {
+                if (_fingerDetectionExpiryTime == 0) self.skippedFingerDetection = YES;
                 _state = MeasurementControllerStateDetectingPulse;
                 break;
             }
@@ -370,6 +371,7 @@
             break;
         case MeasurementControllerStateDetectingPulse:
             if (_pulseDetectionExpiryTime == 0 || _event == MeasurementControllerEventPulseDetected || _event == MeasurementControllerEventPulseDetectionTimeExpired) {
+                if (_pulseDetectionExpiryTime == 0) self.skippedPulseDetection = YES;
                 _state = MeasurementControllerStateCalibrating;
                 break;
             }
