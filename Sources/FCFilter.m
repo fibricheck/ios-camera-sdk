@@ -67,4 +67,11 @@
     return output;
 }
 
+- (void)dealloc {
+    free(a);
+    free(b);
+    free(x);
+    free(y);
+}
+
 @end

@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class Measurement;
 @class CameraInfo;
@@ -35,36 +36,45 @@
 
 @property (readonly) NSUInteger heartRate;
 @property (readonly) CameraInfo* cameraInfo;
+@property (nonatomic, readonly) AVCaptureSession* captureSession;
 
 #pragma mark - Callbacks
 
-@property (copy) void (^onFingerDetected)(void);
-@property (copy) void (^onFingerRemoved)(double, double, double);
-@property (copy) void (^onHeartBeat)(NSUInteger);
-@property (copy) void (^onPulseDetected)(void);
-@property (copy) void (^onCalibrationReady)(void);
-@property (copy) void (^onPulseDetectionTimeExpired)(void);
-@property (copy) void (^onFingerDetectionTimeExpired)(void);
-@property (copy) void (^onMovementDetected)(void);
-@property (copy) void (^onMeasurementStart)(void);
-@property (copy) void (^onMeasurementFinished)(void);
-@property (copy) void (^onMeasurementError)(NSString*);
-@property (copy) void (^onMeasurementProcessed)(Measurement*);
-@property (copy) void (^onSampleReady)(double, double);
-@property (copy) void (^onTimeRemaining)(NSUInteger);
+@property (copy) void (^ _Nullable onFingerDetected)(void);
+@property (copy) void (^ _Nullable onFingerRemoved)(double, double, double);
+@property (copy) void (^ _Nullable onHeartBeat)(NSUInteger);
+@property (copy) void (^ _Nullable onPulseDetected)(void);
+@property (copy) void (^ _Nullable onCalibrationReady)(void);
+@property (copy) void (^ _Nullable onPulseDetectionTimeExpired)(void);
+@property (copy) void (^ _Nullable onFingerDetectionTimeExpired)(void);
+@property (copy) void (^ _Nullable onMovementDetected)(void);
+@property (copy) void (^ _Nullable onMeasurementStart)(void);
+@property (copy) void (^ _Nullable onMeasurementFinished)(void);
+@property (copy) void (^ _Nullable onMeasurementError)(NSString* _Nonnull);
+@property (copy) void (^ _Nullable onMeasurementProcessed)(Measurement* _Nonnull);
+@property (copy) void (^ _Nullable onSampleReady)(double, double);
+@property (copy) void (^ _Nullable onTimeRemaining)(NSUInteger);
+@property (copy) void (^ _Nullable onPreviewStarted)(void);
 
 #pragma mark - Class Methods
 
 /**
  * Returns the SDK label information for regulatory compliance.
- * @return Dictionary containing componentName, udi, ceLabel, manufacturer, releaseDate, and ifu.
+ * @return Dictionary containing componentName, version, udi, ceLabel, manufacturer, releaseDate, and ifu.
  */
 + (NSDictionary<NSString *, NSString *> *)getLabel;
+
+/**
+ * Returns the SDK version string (e.g. "1.2.0").
+ */
++ (NSString *)sdkVersion;
 
 #pragma mark - Methods
 
 -(void)startMeasurement;
 -(void)startRecording;
+-(void)startPreview;
+-(void)stopPreview;
 -(void)stop;
 -(void)updateConfiguration;
 -(void)setCameraSettings:(CameraSettingsInput*) input;

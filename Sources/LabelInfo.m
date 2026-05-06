@@ -37,6 +37,7 @@ static NSDictionary *sdkRelease = nil;
 
     return @{
         @"componentName": [NSString stringWithFormat:@"FibriCheck Camera SDK iOS %@", version],
+        @"version": version,
         @"udi": [self buildUDI:version],
         @"ceLabel": CE_LABEL,
         @"manufacturer": MANUFACTURER,

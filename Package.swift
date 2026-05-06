@@ -28,7 +28,7 @@ let package = Package(
             resources: [
                 .copy("Resources/sdk-release.json")
             ],
-            publicHeadersPath: nil
+            publicHeadersPath: "include"
         ),
         .testTarget(
             name: "FibriCheckCameraSDKTests",
