@@ -159,6 +159,9 @@
     self.state = MeasurementControllerStateDetectingFinger;
     self.previousState = MeasurementControllerStateDetectingFinger;
     self.event = MeasurementControllerEventInit;
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    self.fingerDetectionStartTime = now;
+    self.pulseDetectionStartTime = now;
 }
 
 - (void)registerForNotifications {

@@ -15,6 +15,7 @@ class TestSequenceViewModel: ObservableObject {
     @Published var lastCameraSettings: [String: Any]? = nil
     @Published private(set) var captureSession: AVCaptureSession? = nil
     @Published var showCameraSettingsSheet: Bool = false
+    @Published private(set) var measurementNotes: [String] = []
 
     private var fibriChecker: FibriChecker?
     private var skipFingerDetection: Bool = false
@@ -56,6 +57,7 @@ class TestSequenceViewModel: ObservableObject {
         skipFingerDetection = false
         lastEvent = ""
         lastCameraSettings = nil
+        measurementNotes = []
         sequenceManager.reset()
     }
 
@@ -70,6 +72,12 @@ class TestSequenceViewModel: ObservableObject {
 
     func skipCurrentStep() {
         tearDownFibriChecker(keepPreview: true)
+        sequenceManager.skipCurrentStep()
+        startMeasurement()
+    }
+
+    private func skipStepAndRestart() {
+        isRunning = false
         sequenceManager.skipCurrentStep()
         startMeasurement()
     }
@@ -144,24 +152,29 @@ class TestSequenceViewModel: ObservableObject {
                 DispatchQueue.main.async { self?.handleMovementDetected() }
             }
 
-            fc.flashEnabled = true
-            fc.sampleTime = 10
-
             let (currentStep, shouldSkipFinger) = await MainActor.run {
                 (self?.sequenceManager.currentStepName, self?.skipFingerDetection ?? false)
             }
 
-            if currentStep == .movementDetected && !fc.movementDetectionEnabled {
-                await MainActor.run {
-                    self?.isRunning = false
-                    self?.sequenceManager.skipCurrentStep()
-                    self?.startMeasurement()
-                }
+            self?.configureTimeouts(for: currentStep, on: fc)
+            fc.flashEnabled = true
+            fc.sampleTime = 10
+
+            // Uncomment only for experimental testing!
+            // fc.fingerDetectionExpiryTime = 3;
+            // fc.pulseDetectionExpiryTime = 10;
+            // fc.movementDetectionEnabled = false;
+
+            let shouldSkip =
+                (currentStep == .movementDetected && !fc.movementDetectionEnabled) ||
+                (currentStep == .fingerTimeout && fc.fingerDetectionExpiryTime == 0) ||
+                (currentStep == .pulseTimeout && fc.pulseDetectionExpiryTime == 0) ||
+                (currentStep == .placeFinger && fc.fingerDetectionExpiryTime == 0)
+
+            if shouldSkip {
+                await self?.skipStepAndRestart()
                 return
             }
-
-            self?.configureTimeouts(for: currentStep, on: fc)
-            fc.skippedFingerDetection = shouldSkipFinger
 
             fc.startMeasurement()
 
@@ -181,7 +194,7 @@ class TestSequenceViewModel: ObservableObject {
             fc.pulseDetectionExpiryTime = 1          // 1 second for quick pulse timeout test
         } else if step == .calibration || step == .movementDetected || step == .recordingStart {
             fc.fingerDetectionExpiryTime = UInt.max  // No timeout - wait for user to place finger
-            fc.pulseDetectionExpiryTime = 0          // Skip pulse detection immediately
+            fc.pulseDetectionExpiryTime = UInt.max   // No timeout - finger is already on camera
         } else {
             fc.fingerDetectionExpiryTime = UInt.max  // No timeout - wait for user to place finger
             fc.pulseDetectionExpiryTime = 30         // 30 seconds for pulse detection
@@ -211,7 +224,7 @@ class TestSequenceViewModel: ObservableObject {
         if sequenceManager.currentStepName == .fingerRemoved {
             sequenceManager.onEvent("onFingerRemoved")
             // Now on .movementDetected — set phase-specific instruction since finger was just removed
-            sequenceManager.updateCurrentStepInstruction("Place finger on camera — waiting for recording to start")
+            sequenceManager.updateCurrentStepInstruction("Place finger on camera & wait for recording to start before moving")
             restartMeasurementForNextStep(skipFingerDetection: false)
         }
     }
@@ -272,6 +285,13 @@ class TestSequenceViewModel: ObservableObject {
     func handleSampleReady() {
         if sequenceManager.currentStepName == .sampleReady {
             sequenceManager.onEvent("onSampleReady")
+            // When pulse detection is skipped, onHeartBeat (requires isValidPulse set by
+            // pulse detection) and onPulseDetected will never fire. Skip both steps now
+            // while still before onCalibrationReady, so step 8 receives it correctly.
+            if fibriChecker?.pulseDetectionExpiryTime == 0 {
+                sequenceManager.skipCurrentStep() // heartbeat
+                sequenceManager.skipCurrentStep() // pulse
+            }
         }
     }
 
@@ -284,6 +304,13 @@ class TestSequenceViewModel: ObservableObject {
     func handleCalibrationReady() {
         updateLastEvent("onCalibrationReady")
         sequenceManager.onEvent("onCalibrationReady")
+        // When finger detection is disabled, onFingerRemoved won't fire and there is no
+        // measurement restart for movementDetected's shouldSkip check to run. Skip both
+        // now so onMeasurementStart (queued next on main) lands correctly on recordingStart.
+        if fibriChecker?.fingerDetectionExpiryTime == 0 {
+            sequenceManager.skipCurrentStep() // fingerRemoved
+            sequenceManager.skipCurrentStep() // movementDetected
+        }
     }
 
     func handleMeasurementStart() {
@@ -349,6 +376,13 @@ class TestSequenceViewModel: ObservableObject {
                let cs = dict["camera_settings"] as? [String: Any] {
                 lastCameraSettings = cs
             }
+            if let m = measurement {
+                measurementNotes = [
+                    "skippedFingerDetection: \(m.skippedFingerDetection)",
+                    "skippedPulseDetection: \(m.skippedPulseDetection)",
+                    "skippedMovementDetection: \(m.skippedMovementDetection)"
+                ]
+            }
         }
     }
 
@@ -360,10 +394,6 @@ class TestSequenceViewModel: ObservableObject {
         guard let time = dict["time"] as? [Any], !time.isEmpty else { return "time is missing or empty" }
 
         if dict["measurement_timestamp"] == nil { return "measurement_timestamp is missing" }
-
-        if measurement.skippedFingerDetection { return "skippedFingerDetection is true — finger detection timed out during this measurement" }
-        if measurement.skippedPulseDetection { return "skippedPulseDetection is true — pulse detection timed out during this measurement" }
-        if measurement.skippedMovementDetection { return "skippedMovementDetection is true — movement detection was not enabled during this measurement" }
 
         guard let technicalDetails = dict["technical_details"] as? [String: Any] else { return "technical_details is missing" }
         guard let cameraHdr = technicalDetails["camera_hdr"] as? String, !cameraHdr.isEmpty else { return "technical_details.camera_hdr is missing or empty" }

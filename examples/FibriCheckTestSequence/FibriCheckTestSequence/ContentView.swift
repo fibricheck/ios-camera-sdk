@@ -97,6 +97,18 @@ struct ContentView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
+            if !viewModel.measurementNotes.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(viewModel.measurementNotes, id: \.self) { note in
+                        Text(note)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
+            }
+
             if viewModel.lastCameraSettings != nil {
                 Button("View Camera Settings") {
                     viewModel.showCameraSettingsSheet = true
