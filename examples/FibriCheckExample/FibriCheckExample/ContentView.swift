@@ -117,8 +117,16 @@ struct ContentView: View {
                                     
                                     guard let measurement = measurement else { return }
                                     let _ = measurement.mapToJson()
-                                    let _ = measurement.mapToDictionary()
+                                    let dict = measurement.mapToDictionary()!
+                                    let cameraSettings = dict["camera_settings"] as? NSMutableDictionary;
+                                    let technicalDetails = dict["technical_details"] as! NSMutableDictionary;
                                     
+                                    if (cameraSettings != nil) {
+                                        dump(cameraSettings);
+                                    }
+                                    
+                                    dump(technicalDetails);
+             
                                     print("Measurement Finalized")
                                     let validationResult = validateQuadrants(measurement: measurement)
                                     print("Quadrant Validation Result: " + String(validationResult))
@@ -136,7 +144,29 @@ struct ContentView: View {
                                 fc.onPulseDetected = handlePulseDetection
                                 
                                 fc.accEnabled = true;
-                                fc.sampleTime = 2;
+                                fc.sampleTime = 10;
+                                
+                                fc.setCameraSettings(
+                                    CameraSettingsInput(
+                                        values: CameraSettingMode.modeLocked,
+                                        internal_manualIso: 0,
+                                        internal_manualExposureTime: 0,
+
+                                        internal_whiteBalanceMode: WhiteBalanceMode.locked,
+                                        internal_manualWhiteBalanceRgb: RgbColor(r: 0.0, g: 0.0, b: 0.0),
+                                        internal_manualWhiteBalanceKelvin: 5000,
+
+                                        internal_focusMode: CameraSettingMode.modeLocked,
+                                        internal_manualFocus: 0,
+
+                                        internal_hdrMode: HdrMode.auto,
+
+                                        internal_logExposure: true,
+                                        internal_logWhiteBalance: true,
+                                        internal_logFocus: true,
+                                        internal_logHdr: true
+                                    )
+                                )
 
                                 fc.startMeasurement()
                                 

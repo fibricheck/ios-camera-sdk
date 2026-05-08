@@ -189,9 +189,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-FibriCheckCocoaPodsExample/Pods-FibriCheckCocoaPodsExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-FibriCheckCocoaPodsExample/Pods-FibriCheckCocoaPodsExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -336,7 +340,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FibriCheckCocoaPodsExample/Preview Content\"";
-				DEVELOPMENT_TEAM = JG8RKTA96T;
+				DEVELOPMENT_TEAM = NGEZAFYJ49;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "FibriCheck requires access to the camera to perform a PPG measurement";
@@ -367,7 +371,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FibriCheckCocoaPodsExample/Preview Content\"";
-				DEVELOPMENT_TEAM = JG8RKTA96T;
+				DEVELOPMENT_TEAM = NGEZAFYJ49;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "FibriCheck requires access to the camera to perform a PPG measurement";

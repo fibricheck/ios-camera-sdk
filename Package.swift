@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "FibriCheckCameraSDK",
+    platforms: [
+        .iOS(.v12)
+    ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -22,7 +25,15 @@ let package = Package(
             name: "FibriCheckCameraSDK",
             dependencies: [],
             path: "Sources",
-            publicHeadersPath: nil
+            resources: [
+                .copy("Resources/sdk-release.json")
+            ],
+            publicHeadersPath: "include"
+        ),
+        .testTarget(
+            name: "FibriCheckCameraSDKTests",
+            dependencies: ["FibriCheckCameraSDK"],
+            path: "Tests/FibriCheckCameraSDKTests"
         )
     ]
 )

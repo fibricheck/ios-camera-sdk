@@ -1,0 +1,48 @@
+name: Publish
+
+on:
+  workflow_call:
+    inputs:
+      type:
+        description: "Release type (prod, dev, snapshot)"
+        required: true
+        type: string
+      dry_run:
+        description: "Run without making changes"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      token:
+        required: true
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Run tests and build example app to verify SDK compiles
+      - name: Run unit tests
+        run: |
+          xcodebuild test -scheme FibriCheckCameraSDK -destination 'platform=iOS Simulator,name=iPhone 16'
+
+      - name: Build SPM example
+        run: |
+          cd examples/FibriCheckExample
+          xcodebuild -scheme FibriCheckExample -target FibriCheckExample -destination 'generic/platform=iOS' CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Create release
+        id: sdk-release
+        uses: fibricheck/actions-general/sdk-release@v5
+        with:
+          token: ${{ secrets.token }}
+          type: ${{ inputs.type }}
+          dry_run: ${{ inputs.dry_run }}

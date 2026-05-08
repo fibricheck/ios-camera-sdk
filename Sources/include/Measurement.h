@@ -15,12 +15,12 @@
 @property NSString * version;
 @property NSUInteger heartRate;
 @property NSUInteger attempts;
-@property NSMutableArray * ppg;
 @property NSTimeInterval startTime;
 @property BOOL skippedMovementDetection;
 @property BOOL skippedPulseDetection;
 @property BOOL skippedFingerDetection;
 @property NSMutableDictionary * technical_details;
+@property NSMutableDictionary* camera_settings;
 
 - (instancetype)initWithConfig:(ImageProcessorConfig*)config;
 

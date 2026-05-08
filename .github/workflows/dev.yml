@@ -1,22 +1,21 @@
+name: Deploy Development
+
 on:
-    push:
-      branches:
-        - dev
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run without making changes"
+        type: boolean
+        default: false
 
 permissions:
-    contents: write
-    pull-requests: write
-
-name: Release
+  contents: write
 
 jobs:
-    release-new-version:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: google-github-actions/release-please-action@v3
-          with:
-            command: manifest
-            release-type: simple
-            extra-files: |
-              README.md
-              FibriCheckCameraSDK.podspec
+  publish:
+    uses: ./.github/workflows/publish.yml
+    with:
+      type: dev
+      dry_run: ${{ inputs.dry_run || false }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

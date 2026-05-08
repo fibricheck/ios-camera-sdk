@@ -3,6 +3,9 @@
 #import "MeasurementController.h"
 #import "Measurement.h"
 #import "DataPoint.h"
+#import "CameraInfo.h"
+#import "CameraSettings.h"
+#import "LabelInfo.h"
 
 @interface FibriChecker()<MeasurementControllerDelegate>
 
@@ -11,6 +14,16 @@
 @end
 
 @implementation FibriChecker
+
+#pragma mark - Class Methods
+
++ (NSDictionary<NSString *, NSString *> *)getLabel {
+    return [LabelInfo getLabel];
+}
+
++ (NSString *)sdkVersion {
+    return [LabelInfo getLabel][@"version"];
+}
 
 #pragma mark - Public
 
@@ -31,7 +44,7 @@
         self.quadrantRows = 4;
         self.quadrantCols = 4;
         self.sampleTime = 60;
-        self.pulseDetectionExpiryTime = 10000;
+        self.pulseDetectionExpiryTime = 10;
         self.fingerDetectionExpiryTime = -1;
         self.upperMovementLimit = 14;
         self.lowerMovementLimit = 6;
@@ -50,6 +63,18 @@
 
 - (void)startRecording {
     [self.measurementController startRecording];
+}
+
+- (void)startPreview {
+    [self.measurementController startPreview];
+}
+
+- (void)stopPreview {
+    [self.measurementController stopPreview];
+}
+
+- (AVCaptureSession *)captureSession {
+    return self.measurementController.captureSession;
 }
 
 - (void)stop {
@@ -90,6 +115,13 @@
 #pragma mark - MeasureControllerDelegate
 
 - (void)measurementController:(MeasurementController *)measurementController didChangeState:(MeasurementControllerState)state {
+    if (state == MeasurementControllerStatePreview) {
+        if (self.onPreviewStarted != nil) {
+            self.onPreviewStarted();
+        }
+        return;
+    }
+
     if (state == MeasurementControllerStateFinished) {
         if (self.onMeasurementFinished != nil) {
             self.onMeasurementFinished();
@@ -174,6 +206,14 @@
     if (self.onFingerDetectionTimeExpired != nil) {
         self.onFingerDetectionTimeExpired();
     }
+}
+
+- (CameraInfo*)cameraInfo {
+    return [self.measurementController cameraInfo];
+}
+
+- (void) setCameraSettings:(CameraSettingsInput *)input {
+    [self.measurementController.cameraSettings set:input];
 }
 
 @end

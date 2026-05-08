@@ -1,11 +1,13 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
+#import "BeatListener.h"
 
 //@class MeasurementDeprecated;
 @class ImageProcessor;
-@class BeatListener;
 @class DataPoint;
 @class Measurement;
+@class CameraInfo;
+@class CameraSettings;
 
 @protocol MeasurementControllerDelegate;
 
@@ -14,7 +16,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerState) {
     MeasurementControllerStateDetectingPulse,
     MeasurementControllerStateCalibrating,
     MeasurementControllerStateRecording,
-    MeasurementControllerStateFinished
+    MeasurementControllerStateFinished,
+    MeasurementControllerStatePreview
 };
 
 typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
@@ -28,7 +31,7 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
     MeasurementControllerEventStartRecording
 };
 
-@interface MeasurementController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface MeasurementController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BeatListenerDelegate>
 
 @property (nonatomic, weak) id <MeasurementControllerDelegate> delegate;
 
@@ -50,6 +53,8 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property (assign) NSUInteger fingerDetectionExpiryTime;
 @property (assign) NSUInteger quadrantRows;
 @property (assign) NSUInteger quadrantCols;
+@property (assign) NSUInteger imageWidth;
+@property (assign) NSUInteger imageHeight;
 @property (assign) NSUInteger maxYValue;
 @property (assign) NSUInteger minYValue;
 @property (assign) NSUInteger maxStdDevYValue;
@@ -58,10 +63,15 @@ typedef NS_ENUM(NSInteger, MeasurementControllerEvent) {
 @property Measurement * measurement;
 @property BeatListener * beatListener;
 @property ImageProcessor * imageProcessor;
+@property (readonly) CameraInfo* cameraInfo;
+@property (nonatomic, readonly) AVCaptureSession* captureSession;
+@property CameraSettings* cameraSettings;
 
 - (void)startMeasurement;
 - (void)startRecording;
 - (void)unloadAll;
+- (void)startPreview;
+- (void)stopPreview;
 
 @end
 
