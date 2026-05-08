@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2026-04-24
+## [1.1.0] - 2026-05-08
 
 ### Added
 - Added custom settings and logging (FCRN-2108) ([1343f02](https://github.com/fibricheck/ios-camera-sdk/commit/1343f02a97805a960f5b9df53abaff9da99180d8))
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New release process ([dc35022](https://github.com/fibricheck/ios-camera-sdk/commit/dc35022182cb240a801e85738e41a293adf2348c))
 - Implement test sequence ([4f0b01d](https://github.com/fibricheck/ios-camera-sdk/commit/4f0b01da0c2b44fb75746d4c0a2ecd1e370d1aeb))
 - Added hdr config (FCS-84) ([53bd199](https://github.com/fibricheck/ios-camera-sdk/commit/53bd199f10ebe1bdd23396df9516094454e9ba41))
+- Camera preview ([41e460e](https://github.com/fibricheck/ios-camera-sdk/commit/41e460e51154bd3587a4123c5c9de5cc03ddcf83))
 
 ### Changed
 - Updated testcases to cover the test sequencer ([91107fa](https://github.com/fibricheck/ios-camera-sdk/commit/91107fa6ab6a43636b85912b3104952c7fce1c63))
@@ -25,12 +26,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate output (FCS-85) ([39a5dc5](https://github.com/fibricheck/ios-camera-sdk/commit/39a5dc5dd00eea6112bbba141e97023923e22739))
 - Remove outdated ppg array ([766242a](https://github.com/fibricheck/ios-camera-sdk/commit/766242a7e0050e6467f5d1b7f78d05159de0a02e))
 - Updated hdr & focus logging + sequence tester (FCS-85) ([cec8c1e](https://github.com/fibricheck/ios-camera-sdk/commit/cec8c1eb3d561868c802318dc219e748d57185ad))
+- Add getLabel() information to test sequence app ([18df714](https://github.com/fibricheck/ios-camera-sdk/commit/18df7147f3a09077a8f03d35444d3b89e25fe63b))
+- Updated Release workflow ([40e1f33](https://github.com/fibricheck/ios-camera-sdk/commit/40e1f33e8073eb264addb90c6f071c54c291ef97))
+- Camera preview hardening from fda branch ([c1008ba](https://github.com/fibricheck/ios-camera-sdk/commit/c1008ba82a2a660af4d221d5d88426767bb321ef))
+- Bump publish workflow ([89231e0](https://github.com/fibricheck/ios-camera-sdk/commit/89231e02458fbe4bf9899794380f5c4e41775806))
 
 ### Fixed
 - Unit tests on CI ([698993c](https://github.com/fibricheck/ios-camera-sdk/commit/698993c201a5f8608dea9a4bdbb2afdeaa13cd43))
 - CI release bump ([9ec4c8d](https://github.com/fibricheck/ios-camera-sdk/commit/9ec4c8ddb8ab38b6a4ad37c5794ba3d409d9b3df))
 - FCS-79 Update IFU URL to correct (generic) link ([01ba9c8](https://github.com/fibricheck/ios-camera-sdk/commit/01ba9c86300cbab2a0406bc8436740fa74b774c3))
 - Swift Testing Errors ([6f025b0](https://github.com/fibricheck/ios-camera-sdk/commit/6f025b03315e13c0ad57c27413140915b8f7fc10))
+- Pr comments ([ace2776](https://github.com/fibricheck/ios-camera-sdk/commit/ace27767cd61f41aa5159a364423ba59f1cb30e0))
+- Version number ssot ([82acf97](https://github.com/fibricheck/ios-camera-sdk/commit/82acf971230f5e5eccb0e9887d2e70d694e4ca9b))
+- FingerDetectionExpiryTime & skippedPulseDetection sync ([3fc1d01](https://github.com/fibricheck/ios-camera-sdk/commit/3fc1d0142ecb9fa3f15495b518ddf3daf4d8a2fa))
+- Finger & pulse detection timeouts ([a7e1fe6](https://github.com/fibricheck/ios-camera-sdk/commit/a7e1fe64072b61fcb1f093a2a231ec7010e1aa68))
+- Default timeouts update ([a334f9e](https://github.com/fibricheck/ios-camera-sdk/commit/a334f9e768425017cefbf633b1321205b265ea6c))
 
 ## [1.0.2] - 2024-12-11
 
