@@ -132,8 +132,8 @@ struct ContentView: View {
                     let fc = FibriChecker()
                     
                     fc.sampleTime = 30;
-                    fc.pulseDetectionExpiryTime = 15000;
-//                    fc.fingerDetectionExpiryTime = 500000;
+                    fc.pulseDetectionExpiryTime = 15;
+                    // fc.fingerDetectionExpiryTime = 5;
                     
                     func onFingerDetected() -> Void {
                         logEvent(name: "onFingerDetected")
