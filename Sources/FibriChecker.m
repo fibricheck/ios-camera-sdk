@@ -44,7 +44,7 @@
         self.quadrantRows = 4;
         self.quadrantCols = 4;
         self.sampleTime = 60;
-        self.pulseDetectionExpiryTime = 10000;
+        self.pulseDetectionExpiryTime = 10;
         self.fingerDetectionExpiryTime = -1;
         self.upperMovementLimit = 14;
         self.lowerMovementLimit = 6;
