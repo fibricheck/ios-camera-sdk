@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2026-05-08
+## [1.1.0] - 2026-05-12
 
 ### Added
 - Added custom settings and logging (FCRN-2108) ([1343f02](https://github.com/fibricheck/ios-camera-sdk/commit/1343f02a97805a960f5b9df53abaff9da99180d8))
@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Release workflow ([40e1f33](https://github.com/fibricheck/ios-camera-sdk/commit/40e1f33e8073eb264addb90c6f071c54c291ef97))
 - Camera preview hardening from fda branch ([c1008ba](https://github.com/fibricheck/ios-camera-sdk/commit/c1008ba82a2a660af4d221d5d88426767bb321ef))
 - Bump publish workflow ([89231e0](https://github.com/fibricheck/ios-camera-sdk/commit/89231e02458fbe4bf9899794380f5c4e41775806))
+- Symlink the release data ([cae8dc7](https://github.com/fibricheck/ios-camera-sdk/commit/cae8dc7c8352f3674077471ca136cb0850a003b3))
+- Update test runner ([96080cb](https://github.com/fibricheck/ios-camera-sdk/commit/96080cbfb43541f7c5c6df01c97b059c83038b1e))
+- Hard link git-cliff ([859c549](https://github.com/fibricheck/ios-camera-sdk/commit/859c54939dfa4947cba061eb31d9b3eba8f104c3))
+- Make sdk compatible for cocoapods ([499b693](https://github.com/fibricheck/ios-camera-sdk/commit/499b693389a218645659de1beec4033b17e153ac))
 
 ### Fixed
 - Unit tests on CI ([698993c](https://github.com/fibricheck/ios-camera-sdk/commit/698993c201a5f8608dea9a4bdbb2afdeaa13cd43))
@@ -41,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FingerDetectionExpiryTime & skippedPulseDetection sync ([3fc1d01](https://github.com/fibricheck/ios-camera-sdk/commit/3fc1d0142ecb9fa3f15495b518ddf3daf4d8a2fa))
 - Finger & pulse detection timeouts ([a7e1fe6](https://github.com/fibricheck/ios-camera-sdk/commit/a7e1fe64072b61fcb1f093a2a231ec7010e1aa68))
 - Default timeouts update ([a334f9e](https://github.com/fibricheck/ios-camera-sdk/commit/a334f9e768425017cefbf633b1321205b265ea6c))
+- Release PR creation process ([5f3e75c](https://github.com/fibricheck/ios-camera-sdk/commit/5f3e75c7d6ff3b1ec09361a63079042787ad8603))
 
 ## [1.0.2] - 2024-12-11
 
