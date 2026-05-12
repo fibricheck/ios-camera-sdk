@@ -21,9 +21,17 @@ static NSDictionary *sdkRelease = nil;
         NSBundle *bundle = [NSBundle bundleForClass:[self class]];
         NSURL *url = [bundle URLForResource:@"sdk-release" withExtension:@"json"];
 
-        // For SPM, resources are in a sub-bundle
+        // For SPM, resources are in a sub-bundle named Target_Module.bundle
         if (!url) {
             NSString *bundlePath = [[bundle resourcePath] stringByAppendingPathComponent:@"FibriCheckCameraSDK_FibriCheckCameraSDK.bundle"];
+            NSBundle *resourceBundle = [NSBundle bundleWithPath:bundlePath];
+            url = [resourceBundle URLForResource:@"sdk-release" withExtension:@"json"];
+        }
+
+        // For CocoaPods resources in a sub-bundle named Module.bundle
+        // This is a fallback in case the SPM one returned nil
+        if (!url) {
+            NSString *bundlePath = [[bundle resourcePath] stringByAppendingPathComponent:@"FibriCheckCameraSDK.bundle"];
             NSBundle *resourceBundle = [NSBundle bundleWithPath:bundlePath];
             url = [resourceBundle URLForResource:@"sdk-release" withExtension:@"json"];
         }
