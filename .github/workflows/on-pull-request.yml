@@ -12,11 +12,17 @@ jobs:
 
       - name: Run SDK unit tests
         run: |
-          xcodebuild test -scheme FibriCheckCameraSDK -destination 'platform=iOS Simulator,name=iPhone 16'
+          UDID=$(xcrun simctl list devices available --json | \
+            jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[]] |
+                   map(select(.name | test("iPhone"))) | first | .udid')
+          xcodebuild test -scheme FibriCheckCameraSDK -destination "id=$UDID"
 
       - name: Run TestSequence unit tests
         run: |
-          xcodebuild test -project examples/FibriCheckTestSequence/FibriCheckTestSequence.xcodeproj -scheme FibriCheckTestSequence -destination 'platform=iOS Simulator,name=iPhone 16'
+          UDID=$(xcrun simctl list devices available --json | \
+            jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[]] |
+                   map(select(.name | test("iPhone"))) | first | .udid')
+          xcodebuild test -project examples/FibriCheckTestSequence/FibriCheckTestSequence.xcodeproj -scheme FibriCheckTestSequence -destination "id=$UDID"
 
       - name: Build SPM example
         run: |
